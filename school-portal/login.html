@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Login — School Notify Portal</title>
+    <meta name="description" content="Log in to your School Notify Portal dashboard to send exam results and parent SMS notifications.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="portal.css">
+</head>
+<body class="auth-page">
+
+<div class="auth-split login-split">
+
+    <!-- Left: Branding Panel -->
+    <div class="auth-brand-panel">
+        <div class="brand-content">
+            <div class="brand-logo">
+                <div class="logo-icon-glow">
+                    <i data-lucide="bell" class="glow-icon"></i>
+                </div>
+                <div class="brand-title-wrap">
+                    <span class="brand-name">School Notify</span>
+                    <span class="brand-tag">PORTAL</span>
+                </div>
+            </div>
+
+            <h1 class="brand-headline">Welcome Back to Your<br>School Command Center.</h1>
+            <p class="brand-subtext">The ultimate school parent communication suite. Send exam results, tuition reminders & emergency alerts in 1 click.</p>
+
+            <div class="stats-showcase">
+                <div class="stat-box">
+                    <div class="stat-num">50K+</div>
+                    <div class="stat-lbl"><i data-lucide="send" class="inline-icon text-blue"></i> SMS Sent</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">100+</div>
+                    <div class="stat-lbl"><i data-lucide="building-2" class="inline-icon text-green"></i> Active Schools</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num">99.4%</div>
+                    <div class="stat-lbl"><i data-lucide="check-circle" class="inline-icon text-purple"></i> Delivery Rate</div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <p class="testimonial-text">"School Notify Portal transformed our end-of-term results distribution. Parents get grades on their phones in seconds with zero paper waste!"</p>
+                <div class="testimonial-author"><i data-lucide="award" class="inline-icon text-yellow"></i> Mr. Kamara, Headmaster — Dar es Salaam</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Login Form -->
+    <div class="auth-form-panel">
+        <div class="auth-form-container login-container">
+
+            <div class="form-header">
+                <h2>Sign in to School Notify</h2>
+                <p>New school? <a href="register.html" class="auth-link">Register your school <i data-lucide="arrow-right" class="inline-icon"></i></a></p>
+            </div>
+
+            <!-- Status alerts -->
+            <div id="alertPending" class="alert alert-warning" style="display:none;">
+                <i data-lucide="clock" class="alert-icon"></i>
+                <div><strong>Account Pending Approval</strong> — We are reviewing your registration. You will receive an update within 24 hours.</div>
+            </div>
+            <div id="alertSuspended" class="alert alert-danger" style="display:none;">
+                <i data-lucide="shield-alert" class="alert-icon"></i>
+                <div><strong>Account Suspended</strong> — Please contact portal support.</div>
+            </div>
+            <div id="alertExpired" class="alert alert-warning" style="display:none;">
+                <i data-lucide="alert-triangle" class="alert-icon"></i>
+                <div><strong>Subscription Expired</strong> — <a href="dashboard.html" class="auth-link">Renew your plan →</a></div>
+            </div>
+            <div id="alertError" class="alert alert-danger" style="display:none;"></div>
+
+            <form id="loginForm" onsubmit="event.preventDefault(); handleLogin();">
+
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <div class="input-with-icon">
+                        <i data-lucide="mail" class="input-icon"></i>
+                        <input type="email" id="loginEmail" class="gh-input gh-input-lg" placeholder="admin@school.ac.tz" required autofocus>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        Password
+                        <a href="#" class="forgot-link">Forgot password?</a>
+                    </label>
+                    <div class="input-with-icon password-wrapper">
+                        <i data-lucide="lock" class="input-icon"></i>
+                        <input type="password" id="loginPassword" class="gh-input gh-input-lg" placeholder="Your password" required>
+                        <button type="button" class="toggle-pw" onclick="togglePassword()">
+                            <i data-lucide="eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="rememberMe" checked>
+                    <span>Stay signed in for 30 days</span>
+                </label>
+
+                <button type="submit" class="btn btn-primary btn-full btn-lg" id="loginBtn">
+                    <i data-lucide="log-in"></i> Sign In to Dashboard
+                </button>
+
+            </form>
+
+            <div class="divider"><span>or</span></div>
+
+            <a href="register.html" class="btn btn-outline btn-full">
+                <i data-lucide="graduation-cap"></i> Register New School
+            </a>
+
+            <p class="form-footer-note" style="margin-top:24px;">
+                School Notify Portal System • Powered by Direct SMS Gateway
+            </p>
+
+        </div>
+    </div>
+
+</div>
+
+<script src="portal.js"></script>
+<script>
+    lucide.createIcons();
+</script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Exam Results — School Notify Portal</title>
+    <meta name="description" content="Merge exam results & phone numbers, preview custom SMS templates, and dispatch results live to parents in seconds.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+    <!-- SheetJS for client-side Excel parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body class="gh-dark">
+
+    <!-- Header Banner -->
+    <div class="header-banner">
+        <div class="gh-container header-flex">
+            <div class="logo-area">
+                <a href="../school-portal/dashboard.html" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
+                    <div style="width:36px; height:36px; border-radius:10px; background:rgba(88,166,255,0.15); border:1px solid rgba(88,166,255,0.3); display:flex; align-items:center; justify-content:center;">
+                        <i data-lucide="bell" style="width:20px; height:20px; color:var(--gh-blue);"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight:900; color:#fff; font-size:18px; line-height:1;">School Notify</div>
+                        <div style="font-size:9px; font-weight:800; color:var(--gh-blue); letter-spacing:1.5px; text-transform:uppercase;">EXAM RESULTS DISPATCH ENGINE</div>
+                    </div>
+                </a>
+            </div>
+            <div class="header-right-tools">
+                <a href="../school-portal/dashboard.html" class="gh-btn gh-btn-outline"><i data-lucide="layout-dashboard" class="btn-icon"></i> Back to Dashboard</a>
+                <button class="gh-btn gh-btn-outline" onclick="openSettingsModal()"><i data-lucide="settings" class="btn-icon"></i> Gateway & API Settings</button>
+                <button class="gh-btn gh-btn-secondary" onclick="generateSampleFiles()"><i data-lucide="download" class="btn-icon"></i> Download Sample Excel Sheets</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic School Identity Bar -->
+    <div style="background:#161b22; border-bottom:1px solid #30363d; padding:12px 0;">
+        <div class="gh-container" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div id="schoolAvatarPill" style="width:38px; height:38px; border-radius:8px; background:var(--gh-blue); color:#fff; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:16px;">SCH</div>
+                <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span id="schoolIdentityTitle" style="font-size:16px; font-weight:800; color:#f0f6fc;">St. Joseph Secondary School</span>
+                        <span id="schoolIdentityStatusBadge" class="status-badge bg-green"><i data-lucide="check-circle-2" class="inline-icon"></i> ACTIVE</span>
+                    </div>
+                    <div style="font-size:12px; color:var(--gh-text-muted); display:flex; gap:14px; margin-top:2px;">
+                        <span><i data-lucide="hash" class="inline-icon"></i> Code: <strong id="schoolIdentityCode" style="color:var(--gh-blue);">SCH-4921</strong></span>
+                        <span><i data-lucide="map-pin" class="inline-icon"></i> Region: <span id="schoolIdentityRegion">Dar es Salaam</span></span>
+                        <span><i data-lucide="key" class="inline-icon"></i> API Key: <code id="schoolIdentityKey" style="font-family:var(--font-mono); color:var(--gh-green);">sk_live_...</code></span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button class="gh-btn gh-btn-outline" style="font-size:12px; padding:6px 12px;" onclick="switchSchoolPrompt()">
+                    <i data-lucide="refresh-cw" class="btn-icon"></i> Switch / Link School Code
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="gh-container main-content">
+
+        <!-- STEP 1: Upload Mode Selector -->
+        <div class="gh-card mb-20">
+            <div class="gh-card-header">
+                <div class="card-title-group">
+                    <span class="step-num">1</span>
+                    <h3>Choose Your Excel Upload Workflow</h3>
+                </div>
+            </div>
+            <div class="gh-card-body">
+                <div class="mode-toggle-group">
+                    <button class="mode-btn active" id="btnDualMode" onclick="setUploadMode('dual')">
+                        <i data-lucide="files" style="width:28px; height:28px; color:var(--gh-blue); flex-shrink:0;"></i>
+                        <div class="mode-info">
+                            <span class="mode-title">Dual File Merger (Recommended)</span>
+                            <span class="mode-desc">File 1 = Exam Results • File 2 = Parent Contacts (AI matches by Student Name)</span>
+                        </div>
+                    </button>
+                    <button class="mode-btn" id="btnSingleMode" onclick="setUploadMode('single')">
+                        <i data-lucide="file-spreadsheet" style="width:28px; height:28px; color:var(--gh-purple); flex-shrink:0;"></i>
+                        <div class="mode-info">
+                            <span class="mode-title">Single Combined File</span>
+                            <span class="mode-desc">One Excel sheet containing Grades + Phone Numbers together</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: Dropzones for Files -->
+        <div class="gh-card mb-20">
+            <div class="gh-card-header">
+                <div class="card-title-group">
+                    <span class="step-num">2</span>
+                    <h3 id="step2Title">Upload Excel Files</h3>
+                </div>
+            </div>
+            <div class="gh-card-body">
+                <div class="dropzones-container" id="dropzonesContainer">
+
+                    <!-- Dropzone 1: Results File -->
+                    <div class="dropzone-box" id="dzResults" onclick="document.getElementById('fileResults').click()">
+                        <div class="dz-icon" style="margin-bottom:8px;">
+                            <i data-lucide="bar-chart-3" style="width:36px; height:36px; color:var(--gh-blue);"></i>
+                        </div>
+                        <h4>1. Exam Results Excel File (.xlsx)</h4>
+                        <p>Must contain <strong>Student Name</strong> column and grade columns like <strong>Math (A)</strong>, <strong>Physics (B)</strong></p>
+                        <span class="dz-badge" id="badgeResults">Click or drag & drop file</span>
+                        <input type="file" id="fileResults" accept=".xlsx, .xls" style="display:none" onchange="handleResultsFileUpload(event)">
+                    </div>
+
+                    <!-- Dropzone 2: Contacts File (Dual Mode) -->
+                    <div class="dropzone-box" id="dzContacts" onclick="document.getElementById('fileContacts').click()">
+                        <div class="dz-icon" style="margin-bottom:8px;">
+                            <i data-lucide="smartphone" style="width:36px; height:36px; color:var(--gh-green);"></i>
+                        </div>
+                        <h4>2. Parent Directory Excel File (.xlsx)</h4>
+                        <p>Must contain <strong>Student Name</strong> and <strong>Phone Number</strong> (AI auto-detects phone column)</p>
+                        <span class="dz-badge" id="badgeContacts">Click or drag & drop file</span>
+                        <input type="file" id="fileContacts" accept=".xlsx, .xls" style="display:none" onchange="handleContactsFileUpload(event)">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Live Results Preview & SMS Dispatcher -->
+        <div class="gh-card" id="cardResultsSection" style="display:none;">
+            <div class="gh-card-header flex-between">
+                <div class="card-title-group">
+                    <span class="step-num">3</span>
+                    <h3>Preview Merged Results & Send Parent SMS</h3>
+                </div>
+                <div class="header-actions">
+                    <button class="gh-btn gh-btn-outline" onclick="exportMergedExcel()">
+                        <i data-lucide="download" class="btn-icon"></i> Export Master Sheet (.xlsx)
+                    </button>
+                    <button class="gh-btn gh-btn-primary" id="btnSendAll" onclick="sendSmsToAll()">
+                        <i data-lucide="send" class="btn-icon"></i> Dispatch SMS to All Parents
+                    </button>
+                </div>
+            </div>
+            <div class="gh-card-body">
+
+                <!-- Summary Match Stat Cards -->
+                <div class="summary-stats-grid" id="summaryStats">
+                    <div class="stat-card">
+                        <i data-lucide="users" style="width:24px; height:24px; color:var(--gh-blue);"></i>
+                        <div>
+                            <div class="stat-val" id="statTotalStudents">0</div>
+                            <div class="stat-lbl">Total Students</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i data-lucide="check-circle-2" style="width:24px; height:24px; color:var(--gh-green);"></i>
+                        <div>
+                            <div class="stat-val" id="statMatchedPhones">0</div>
+                            <div class="stat-lbl">Matched Parent Phones</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i data-lucide="book-open" style="width:24px; height:24px; color:var(--gh-purple);"></i>
+                        <div>
+                            <div class="stat-val" id="statDetectedSubjects">0</div>
+                            <div class="stat-lbl">Subjects Auto-Detected</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i data-lucide="message-square" style="width:24px; height:24px; color:var(--gh-yellow);"></i>
+                        <div>
+                            <div class="stat-val" id="statReadySms">0</div>
+                            <div class="stat-lbl">SMS Messages Ready</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Template Editor -->
+                <div class="sms-template-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <label style="font-weight:700; color:var(--gh-text);">
+                            <i data-lucide="message-square" class="inline-icon"></i> Customize Parent SMS Message Template:
+                        </label>
+                        <span style="font-size:11px; color:var(--gh-text-muted);">
+                            Placeholders: <code>{STUDENT_NAME}</code>, <code>{SUBJECTS_SCORES}</code>, <code>{SCHOOL_NAME}</code>
+                        </span>
+                    </div>
+                    <div class="template-editor">
+                        <textarea id="smsTemplateText" class="gh-textarea" rows="3" oninput="updateSmsPreviews()">Habari Mzazi wa {STUDENT_NAME}, matokeo ya mitihani ni: {SUBJECTS_SCORES}. Ahsante - School Notify Portal.</textarea>
+                        <div class="preview-sms-box" id="smsPreviewSample">
+                            Sample SMS preview will appear here...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Progress Monitor -->
+                <div id="progressMonitorBox" style="display:none;" class="gh-card mb-20" style="padding:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <div style="font-weight:800; font-size:14px; color:var(--gh-blue); display:flex; align-items:center; gap:6px;">
+                            <i data-lucide="zap" class="inline-icon"></i> Live Real-Time Broadcast Progress
+                        </div>
+                        <div style="display:flex; gap:8px;">
+                            <span class="status-badge bg-green" id="countDelivered">🟢 Delivered: 0</span>
+                            <span class="status-badge bg-blue" id="countSending">⚡ Sending: 0</span>
+                            <span class="status-badge bg-red" id="countFailed">🔴 Failed: 0</span>
+                        </div>
+                    </div>
+                    <div style="width:100%; height:8px; background:var(--gh-subtle-bg); border-radius:4px; overflow:hidden;">
+                        <div id="progressBarFill" style="width:0%; height:100%; background:var(--gh-green); transition:width 0.3s ease;"></div>
+                    </div>
+                </div>
+
+                <!-- Filters & Student Table -->
+                <div class="table-toolbar">
+                    <div style="display:flex; gap:8px;">
+                        <button class="gh-btn gh-btn-outline" onclick="filterTable('ALL', this)">All Students</button>
+                        <button class="gh-btn gh-btn-outline" onclick="filterTable('SENT', this)">Sent / Delivered</button>
+                        <button class="gh-btn gh-btn-outline" onclick="filterTable('FAILED', this)">Failed</button>
+                    </div>
+                    <input type="text" id="searchTableInput" class="gh-textarea" style="width:260px; padding:6px 10px;" placeholder="Search student or phone..." oninput="searchStudentsTable()">
+                </div>
+
+                <div style="overflow-x:auto;">
+                    <table class="gh-table" id="mergedResultsTable">
+                        <thead>
+                            <tr id="tableHeaderRow">
+                                <th>#</th>
+                                <th>Student Name</th>
+                                <th>Parent Phone</th>
+                                <th>Grades Summary</th>
+                                <th>SMS Message Preview</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Populated dynamically by app.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Settings Modal -->
+    <div class="modal-backdrop" id="settingsModal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i data-lucide="settings" class="inline-icon"></i> School Notify API & Gateway Settings</h3>
+                <button class="gh-btn gh-btn-outline" style="padding:2px 8px;" onclick="closeSettingsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label>SMS Gateway Server URL</label>
+                    <input type="text" id="cfgGatewayUrl" class="gh-textarea" rows="1" value="https://sms.simukitaa.com">
+                </div>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label>REST API Key (from dashboard)</label>
+                    <input type="text" id="cfgApiKey" class="gh-textarea" rows="1" placeholder="sk_live_...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="gh-btn gh-btn-outline" onclick="closeSettingsModal()">Cancel</button>
+                <button class="gh-btn gh-btn-primary" onclick="saveConfig()">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

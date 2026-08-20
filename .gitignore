@@ -1,0 +1,28 @@
+﻿# Maven / Java / Backend
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+*.class
+*.jar
+*.war
+
+# Gradle / Android
+android/.gradle/
+android/.idea/
+android/app/build/
+android/build/
+android/local.properties
+android/.kotlin/
+*.apk
+*.aab
+
+# Logs & Temporary Files
+*.log
+cloudflared.log
+cloudflared-error.log
+
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

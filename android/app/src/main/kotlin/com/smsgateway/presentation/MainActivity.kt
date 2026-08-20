@@ -1,0 +1,23 @@
+package com.smsgateway.presentation
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import com.smsgateway.presentation.navigation.GatewayNavHost
+import com.smsgateway.presentation.theme.SmsGatewayTheme
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
+class MainActivity : ComponentActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContent {
+            SmsGatewayTheme {
+                GatewayNavHost()
+            }
+        }
+    }
+}

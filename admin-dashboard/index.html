@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Gateway — Admin & Developer Portal</title>
+    <meta name="description" content="Professional GitHub-style Real-Time SMS Gateway Dashboard with live SSE events and REST API Key integration.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="gh-dark">
+
+<!-- Login Screen -->
+<div id="loginPage" class="page active">
+    <div class="login-wrapper">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="gh-logo">
+                    <i data-lucide="bell" style="width:36px; height:36px; color:var(--gh-blue);"></i>
+                </div>
+                <h2>School Notify Super-Admin</h2>
+                <p>Real-Time School SMS Gateway & Portal Console</p>
+            </div>
+            <form onsubmit="event.preventDefault(); login();">
+                <div class="form-group">
+                    <label>Server Host Domain</label>
+                    <input type="url" id="loginServerUrl" class="gh-input" value="https://sms.simukitaa.com" required readonly style="background:var(--gh-bg); opacity:0.8; cursor:not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="loginUsername" class="gh-input" value="admin" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" class="gh-input" value="Admin@123" required>
+                </div>
+                <div class="error-msg" id="loginError"></div>
+                <button type="submit" class="btn btn-primary full-width" id="loginBtn" style="font-size:14px; padding:10px;">🚀 Launch Live Admin Dashboard</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Main App Shell -->
+<div id="appShell" class="app-shell" style="display: none;">
+    <!-- Top Navigation Header -->
+    <header class="gh-header">
+        <div class="header-left">
+            <div class="brand">
+                <svg height="24" viewBox="0 0 16 16" width="24" fill="#f0f6fc"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+                <span class="brand-name">SMS Gateway</span>
+                <span class="version-tag">v1.0.0</span>
+            </div>
+            <!-- Main Sub-Nav Tabs -->
+            <nav class="main-tabs">
+                <button class="tab-item active" data-tab="dashboard">📊 Overview</button>
+                <button class="tab-item" data-tab="schools">🏫 Registered Schools <span class="tab-badge" id="navSchoolCount">0</span></button>
+                <button class="tab-item" data-tab="messages">💬 Messages</button>
+                <button class="tab-item" data-tab="gateways">📱 Gateways <span class="tab-badge" id="navGatewayCount">0</span></button>
+                <button class="tab-item" data-tab="apikeys">🔑 API Keys</button>
+                <button class="tab-item" data-tab="apidocs">📖 Developer Docs</button>
+            </nav>
+        </div>
+        <div class="header-right">
+            <!-- Live SSE Stream Status -->
+            <div class="live-stream-badge" id="sseBadge">
+                <span class="live-dot pulse-dot"></span>
+                <span id="sseStatusText">Live Stream</span>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="refreshCurrentPage()">🔄 Refresh</button>
+            <div class="user-pill">
+                <span class="user-avatar" id="userAvatar">A</span>
+                <span id="userNameText">admin</span>
+            </div>
+            <button class="btn btn-outline btn-sm btn-danger-icon" onclick="logout()" title="Logout">↪</button>
+        </div>
+    </header>
+
+    <!-- Main Body Container -->
+    <div class="main-container">
+
+        <!-- TAB 1: DASHBOARD OVERVIEW -->
+        <section id="tab-dashboard" class="tab-content active">
+            <!-- Quick Stats Row -->
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-title">Active Gateways</div>
+                    <div class="stat-number" id="dashActiveGateways">—</div>
+                    <div class="stat-sub" style="color:var(--gh-green)" id="dashOnlineGateways">0 Online</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-title">Pending Messages</div>
+                    <div class="stat-number" id="dashPendingSms">—</div>
+                    <div class="stat-sub" style="color:var(--gh-yellow)">In Dispatch Queue</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-title">Sent Today</div>
+                    <div class="stat-number" id="dashSentToday">—</div>
+                    <div class="stat-sub" style="color:var(--gh-blue)">Dispatched via SIM</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-title">Delivered Today</div>
+                    <div class="stat-number" id="dashDeliveredToday">—</div>
+                    <div class="stat-sub" style="color:var(--gh-green)">Confirmed Delivered</div>
+                </div>
+            </div>
+
+            <!-- Two Column Layout: Realtime Event Feed + System Summary -->
+            <div class="grid-2col">
+                <div class="gh-card">
+                    <div class="card-header">
+                        <h3>⚡ Live Real-Time Event Feed</h3>
+                        <span class="card-tag">SSE Streaming</span>
+                    </div>
+                    <div class="card-body p0">
+                        <div class="event-feed" id="eventFeed">
+                            <div class="feed-item">
+                                <span class="feed-time">Just now</span>
+                                <span class="feed-tag tag-green">SYSTEM</span>
+                                <span class="feed-text">Connected to live SSE stream. Waiting for events...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gh-card">
+                    <div class="card-header">
+                        <h3>📱 Gateway Health Status</h3>
+                        <button class="btn btn-sm btn-outline" onclick="switchTab('gateways')">Manage Gateways</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="dashGatewayList" class="mini-gateway-list">
+                            <div class="empty-text">Loading gateways...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: REGISTERED SCHOOLS -->
+        <section id="tab-schools" class="tab-content">
+            <div class="section-toolbar">
+                <div class="toolbar-title">
+                    <h2>🏫 Registered Schools & Approvals</h2>
+                    <p>Manage all registered schools, approve accounts, collect setup fees & extend subscriptions</p>
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn btn-outline" onclick="loadSchools()">🔄 Refresh List</button>
+                    <a href="school-portal/register.html" target="_blank" class="btn btn-primary">+ Register New School</a>
+                </div>
+            </div>
+
+            <div class="gh-card">
+                <div class="card-body p0">
+                    <table class="gh-table" id="schoolsTable">
+                        <thead>
+                            <tr>
+                                <th>School Name & Code</th>
+                                <th>Contact Email & Phone</th>
+                                <th>Region & Type</th>
+                                <th>Plan & Locked Rate</th>
+                                <th>Setup Fee</th>
+                                <th>Status</th>
+                                <th>Registered</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schoolsBody">
+                            <tr><td colspan="8" class="empty-cell">Loading registered schools...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: MESSAGES -->
+        <section id="tab-messages" class="tab-content">
+            <div class="section-toolbar">
+                <div class="toolbar-title">
+                    <h2>SMS Message History</h2>
+                    <p>Live stream of incoming and outgoing SMS transactions</p>
+                </div>
+                <div class="toolbar-actions">
+                    <select id="msgStatusFilter" class="gh-input gh-select" onchange="loadMessages()">
+                        <option value="">All Statuses</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="SENDING">Sending</option>
+                        <option value="SENT">Sent</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="FAILED">Failed</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="openSendModal()">+ Send SMS</button>
+                </div>
+            </div>
+
+            <div class="gh-card">
+                <div class="card-body p0">
+                    <table class="gh-table" id="messagesTable">
+                        <thead>
+                            <tr>
+                                <th>Message ID</th>
+                                <th>Phone Number</th>
+                                <th>Message Text</th>
+                                <th>Status</th>
+                                <th>Type</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messagesBody">
+                            <tr><td colspan="7" class="empty-cell">Loading messages...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: GATEWAYS -->
+        <section id="tab-gateways" class="tab-content">
+            <div class="section-toolbar">
+                <div class="toolbar-title">
+                    <h2>Registered Gateways</h2>
+                    <p>Android smartphones running the SMS Gateway daemon service</p>
+                </div>
+                <button class="btn btn-outline" onclick="loadGateways()">🔄 Refresh List</button>
+            </div>
+
+            <div class="gateways-grid" id="gatewaysGrid">
+                <div class="empty-text">Loading registered gateways...</div>
+            </div>
+        </section>
+
+        <!-- TAB 4: API KEYS -->
+        <section id="tab-apikeys" class="tab-content">
+            <div class="section-toolbar">
+                <div class="toolbar-title">
+                    <h2>REST API Keys</h2>
+                    <p>Secret API keys allowing external systems (websites, CRMs, apps) to send SMS</p>
+                </div>
+                <button class="btn btn-primary" onclick="openCreateApiKeyModal()">+ Generate New API Key</button>
+            </div>
+
+            <div class="gh-card">
+                <div class="card-body p0">
+                    <table class="gh-table" id="apiKeysTable">
+                        <thead>
+                            <tr>
+                                <th>Key Name</th>
+                                <th>Key Prefix</th>
+                                <th>Bound Gateway Phone</th>
+                                <th>Created</th>
+                                <th>Last Used</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apiKeysBody">
+                            <tr><td colspan="6" class="empty-cell">Loading API keys...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: DEVELOPER DOCS -->
+        <section id="tab-apidocs" class="tab-content">
+            <div class="section-toolbar">
+                <div class="toolbar-title">
+                    <h2>Developer Integration Guide</h2>
+                    <p>Link your website, application, or CRM to this SMS Gateway in 3 lines of code</p>
+                </div>
+            </div>
+
+            <div class="docs-container">
+                <div class="doc-card">
+                    <h3>1. Authentication & Endpoint</h3>
+                    <p>Send an HTTP <code>POST</code> request to your gateway server endpoint. Include your API Key in the <code>X-API-Key</code> request header:</p>
+                    <div class="code-block">
+                        <div class="code-header">
+                            <span>Endpoint Specification</span>
+                            <span class="http-badge post">POST</span>
+                        </div>
+                        <pre>http://192.168.100.5:8080/api/v1/sms/send</pre>
+                    </div>
+                </div>
+
+                <div class="doc-card">
+                    <h3>2. Code Examples</h3>
+                    <div class="code-tabs">
+                        <button class="code-tab active" data-lang="curl">cURL</button>
+                        <button class="code-tab" data-lang="node">JavaScript / Node.js</button>
+                        <button class="code-tab" data-lang="python">Python</button>
+                        <button class="code-tab" data-lang="php">PHP (cURL)</button>
+                    </div>
+
+                    <!-- cURL snippet -->
+                    <div class="code-snippet-box active" id="snippet-curl">
+                        <button class="copy-btn" onclick="copySnippet('curlText')">Copy Code</button>
+                        <pre id="curlText">curl -X POST http://192.168.100.5:8080/api/v1/sms/send \
+  -H "X-API-Key: YOUR_API_KEY_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "phoneNumber": "+25575855909",
+        "message": "Hello from external system!"
+      }'</pre>
+                    </div>
+
+                    <!-- Node.js snippet -->
+                    <div class="code-snippet-box" id="snippet-node">
+                        <button class="copy-btn" onclick="copySnippet('nodeText')">Copy Code</button>
+                        <pre id="nodeText">const fetch = require('node-fetch');
+
+async function sendSms() {
+  const response = await fetch('http://192.168.100.5:8080/api/v1/sms/send', {
+    method: 'POST',
+    headers: {
+      'X-API-Key': 'YOUR_API_KEY_HERE',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      phoneNumber: '+25575855909',
+      message: 'Hello from Node.js!'
+    })
+  });
+  const data = await response.json();
+  console.log(data);
+}
+
+sendSms();</pre>
+                    </div>
+
+                    <!-- Python snippet -->
+                    <div class="code-snippet-box" id="snippet-python">
+                        <button class="copy-btn" onclick="copySnippet('pythonText')">Copy Code</button>
+                        <pre id="pythonText">import requests
+
+url = "http://192.168.100.5:8080/api/v1/sms/send"
+headers = {
+    "X-API-Key": "YOUR_API_KEY_HERE",
+    "Content-Type": "application/json"
+}
+payload = {
+    "phoneNumber": "+25575855909",
+    "message": "Hello from Python!"
+}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())</pre>
+                    </div>
+
+                    <!-- PHP snippet -->
+                    <div class="code-snippet-box" id="snippet-php">
+                        <button class="copy-btn" onclick="copySnippet('phpText')">Copy Code</button>
+                        <pre id="phpText">&lt;?php
+$ch = curl_init('http://192.168.100.5:8080/api/v1/sms/send');
+$payload = json_encode([
+    "phoneNumber" => "+25575855909",
+    "message" => "Hello from PHP!"
+]);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'X-API-Key: YOUR_API_KEY_HERE',
+    'Content-Type: application/json'
+]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$result = curl_exec($ch);
+curl_close($ch);
+echo $result;
+?&gt;</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<!-- Send SMS Modal -->
+<div id="sendSmsModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>✉️ Send SMS Message</h3>
+            <button class="close-btn" onclick="closeSendModal()">&times;</button>
+        </div>
+        <form onsubmit="event.preventDefault(); handleSendSms();">
+            <div class="form-group">
+                <label>Recipient Phone Number</label>
+                <input type="text" id="smsPhone" class="gh-input" placeholder="+25575855909" required>
+            </div>
+            <div class="form-group">
+                <label>Message Content</label>
+                <textarea id="smsText" class="gh-input" rows="4" placeholder="Type your message here..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label>Priority</label>
+                <select id="smsPriority" class="gh-input gh-select">
+                    <option value="1">High Priority (Immediate)</option>
+                    <option value="2" selected>Normal Priority</option>
+                    <option value="3">Low Priority</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeSendModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="sendSmsSubmitBtn">Dispatch SMS 🚀</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Create API Key Modal -->
+<div id="createApiKeyModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>🔑 Generate REST API Key</h3>
+            <button class="close-btn" onclick="closeCreateApiKeyModal()">&times;</button>
+        </div>
+        <form onsubmit="event.preventDefault(); handleCreateApiKey();">
+            <div class="form-group">
+                <label>Key Name / Description</label>
+                <input type="text" id="apiKeyName" class="gh-input" placeholder="e.g. School A Results Portal" required>
+            </div>
+
+            <div class="form-group">
+                <label>Lock to Gateway Phone (Optional)</label>
+                <select id="apiKeyGatewayUid" class="gh-input gh-select">
+                    <option value="">🌐 Any Gateway (Default Routing)</option>
+                </select>
+                <div style="color:var(--gh-text-muted); font-size:11px; margin-top:4px;">
+                    Restricts this API Key so messages sent with it ONLY dispatch through a specific gateway phone.
+                </div>
+            </div>
+
+            <!-- Single Display Box for Newly Created Key -->
+            <div id="createdKeyBox" style="display: none; margin-bottom: 16px;">
+                <div class="alert alert-warning">
+                    ⚠️ Copy this API key now! You won't be able to see it again.
+                </div>
+                <div class="key-display-box">
+                    <input type="text" id="rawApiKeyInput" class="gh-input code-font" readonly>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="copyCreatedApiKey()">Copy Key</button>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" onclick="closeCreateApiKeyModal()">Close</button>
+                <button type="submit" class="btn btn-primary" id="createApiKeySubmitBtn">Generate Key</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,557 @@
+/* ============================================================
+   School Notify — High-Performance Dark GitHub Dashboard System
+   ============================================================ */
+
+:root {
+    --gh-bg: #0d1117;
+    --gh-header-bg: #161b22;
+    --gh-card-bg: #161b22;
+    --gh-subtle-bg: #21262d;
+    --gh-border: #30363d;
+    --gh-border-subtle: #21262d;
+    --gh-text: #f0f6fc;
+    --gh-text-muted: #8b949e;
+    --gh-blue: #58a6ff;
+    --gh-blue-hover: #79c0ff;
+    --gh-green: #3fb950;
+    --gh-green-btn: #238636;
+    --gh-green-btn-hover: #2ea043;
+    --gh-red: #f85149;
+    --gh-yellow: #d29922;
+    --gh-purple: #bc8cff;
+    --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body.gh-dark {
+    background-color: var(--gh-bg);
+    color: var(--gh-text);
+    font-family: var(--font-stack);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Strict Lucide Vector Icon Rules (Prevents Massive SVG Blowup)
+   ============================================================ */
+svg.lucide, i[data-lucide], .btn-icon, .inline-icon, .section-icon {
+    width: 16px;
+    height: 16px;
+    max-width: 24px;
+    max-height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+    stroke-width: 2px;
+}
+
+.btn-icon {
+    margin-right: 6px;
+}
+
+.inline-icon {
+    margin-right: 4px;
+}
+
+/* Containers */
+.gh-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.main-content {
+    padding-top: 24px;
+    padding-bottom: 48px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+/* ============================================================
+   Header Banner
+   ============================================================ */
+.header-banner {
+    background-color: var(--gh-header-bg);
+    border-bottom: 1px solid var(--gh-border);
+    padding: 14px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-right-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ============================================================
+   GitHub Style Buttons
+   ============================================================ */
+.gh-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.gh-btn-primary {
+    background-color: var(--gh-green-btn);
+    color: #ffffff;
+    border-color: rgba(240, 246, 252, 0.1);
+}
+
+.gh-btn-primary:hover {
+    background-color: var(--gh-green-btn-hover);
+    border-color: rgba(240, 246, 252, 0.2);
+}
+
+.gh-btn-outline {
+    background-color: var(--gh-subtle-bg);
+    color: var(--gh-text);
+    border-color: var(--gh-border);
+}
+
+.gh-btn-outline:hover {
+    background-color: var(--gh-border);
+    border-color: #8b949e;
+}
+
+.gh-btn-secondary {
+    background-color: rgba(88, 166, 255, 0.15);
+    color: var(--gh-blue);
+    border-color: rgba(88, 166, 255, 0.3);
+}
+
+.gh-btn-secondary:hover {
+    background-color: rgba(88, 166, 255, 0.25);
+}
+
+.gh-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   Cards & GitHub Container Layouts
+   ============================================================ */
+.gh-card {
+    background-color: var(--gh-card-bg);
+    border: 1px solid var(--gh-border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.gh-card-header {
+    background-color: #161b22;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--gh-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-title-group h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gh-text);
+}
+
+.step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: var(--gh-blue);
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gh-card-body {
+    padding: 20px;
+}
+
+/* ============================================================
+   Step 1: Upload Mode Cards
+   ============================================================ */
+.mode-toggle-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.mode-btn {
+    background: var(--gh-subtle-bg);
+    border: 2px solid var(--gh-border);
+    border-radius: 8px;
+    padding: 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    color: var(--gh-text);
+}
+
+.mode-btn:hover {
+    border-color: var(--gh-blue);
+    background-color: #1c2128;
+}
+
+.mode-btn.active {
+    border-color: var(--gh-blue);
+    background-color: rgba(88, 166, 255, 0.08);
+    box-shadow: 0 0 0 1px var(--gh-blue);
+}
+
+.mode-icon {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.mode-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mode-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gh-text);
+}
+
+.mode-desc {
+    font-size: 12px;
+    color: var(--gh-text-muted);
+}
+
+/* ============================================================
+   Step 2: File Dropzones
+   ============================================================ */
+.dropzones-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.dropzone-box {
+    background: #0d1117;
+    border: 2px dashed var(--gh-border);
+    border-radius: 8px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dropzone-box:hover, .dropzone-box.dragover {
+    border-color: var(--gh-green);
+    background: rgba(63, 185, 80, 0.05);
+}
+
+.dropzone-box.loaded {
+    border-color: var(--gh-blue);
+    background: rgba(88, 166, 255, 0.05);
+}
+
+.dz-icon {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.dropzone-box h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--gh-text);
+}
+
+.dropzone-box p {
+    font-size: 12px;
+    color: var(--gh-text-muted);
+    margin-bottom: 12px;
+}
+
+.dz-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: var(--gh-subtle-bg);
+    color: var(--gh-blue);
+    border: 1px solid var(--gh-border);
+}
+
+.dropzone-box.loaded .dz-badge {
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--gh-green);
+    border-color: rgba(63, 185, 80, 0.3);
+}
+
+/* ============================================================
+   Step 3: Summary Stat Cards
+   ============================================================ */
+.summary-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: var(--gh-subtle-bg);
+    border: 1px solid var(--gh-border);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.stat-icon {
+    font-size: 24px;
+}
+
+.stat-val {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--gh-text);
+    line-height: 1.1;
+}
+
+.stat-lbl {
+    font-size: 12px;
+    color: var(--gh-text-muted);
+    margin-top: 2px;
+}
+
+/* SMS Template Editor & Preview */
+.sms-template-card {
+    background: #0d1117;
+    border: 1px solid var(--gh-border);
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 24px;
+}
+
+.template-editor {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--gh-text-muted);
+    margin-bottom: 6px;
+}
+
+.gh-textarea {
+    width: 100%;
+    background: #161b22;
+    border: 1px solid var(--gh-border);
+    border-radius: 6px;
+    color: var(--gh-text);
+    font-family: var(--font-stack);
+    font-size: 13px;
+    padding: 10px;
+    resize: vertical;
+    outline: none;
+}
+
+.gh-textarea:focus {
+    border-color: var(--gh-blue);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+}
+
+.preview-sms-box {
+    background: #161b22;
+    border: 1px solid var(--gh-border);
+    border-radius: 6px;
+    padding: 14px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--gh-green);
+    min-height: 100px;
+    white-space: pre-wrap;
+}
+
+/* ============================================================
+   Data Table Styling
+   ============================================================ */
+.table-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.gh-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+.gh-table th {
+    background: #161b22;
+    color: var(--gh-text-muted);
+    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--gh-border);
+}
+
+.gh-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--gh-border-subtle);
+    vertical-align: middle;
+}
+
+.gh-table tbody tr:hover {
+    background: rgba(110, 118, 129, 0.08);
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.bg-green { background: rgba(63, 185, 80, 0.15); color: var(--gh-green); border: 1px solid rgba(63, 185, 80, 0.3); }
+.bg-yellow { background: rgba(210, 153, 34, 0.15); color: var(--gh-yellow); border: 1px solid rgba(210, 153, 34, 0.3); }
+.bg-red { background: rgba(248, 81, 73, 0.15); color: var(--gh-red); border: 1px solid rgba(248, 81, 73, 0.3); }
+
+/* Terminal Logs Box */
+.live-terminal-box {
+    background: #0d1117;
+    border: 1px solid var(--gh-border);
+    border-radius: 8px;
+    margin-top: 24px;
+    overflow: hidden;
+}
+
+.terminal-header {
+    background: #161b22;
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gh-text-muted);
+    border-bottom: 1px solid var(--gh-border);
+    display: flex;
+    justify-content: space-between;
+}
+
+.terminal-content {
+    padding: 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    max-height: 180px;
+    overflow-y: auto;
+    color: var(--gh-green);
+    background: #040d14;
+}
+
+.terminal-line {
+    margin-bottom: 4px;
+}
+
+/* Modal */
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(1, 4, 9, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--gh-card-bg);
+    border: 1px solid var(--gh-border);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--gh-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--gh-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #161b22;
+}

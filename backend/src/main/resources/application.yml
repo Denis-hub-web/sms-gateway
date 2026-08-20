@@ -1,0 +1,87 @@
+spring:
+  application:
+    name: sms-gateway-backend
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:smsgateway}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: false
+
+  cache:
+    type: simple
+
+server:
+  port: ${SERVER_PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:your-super-secret-key-change-in-production-minimum-256-bits-long}
+    access-token-expiry-ms: 2592000000     # 30 days
+    refresh-token-expiry-ms: 31536000000   # 1 year
+    gateway-token-expiry-ms: 31536000000 # 1 year
+
+  gateway:
+    job-batch-size: 10
+    heartbeat-timeout-seconds: 120
+    max-retry-attempts: 3
+    message-delay-ms: 1000
+
+  rate-limit:
+    sms-send-per-minute: 60
+    api-requests-per-minute: 300
+
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:8080}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.smsgateway: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

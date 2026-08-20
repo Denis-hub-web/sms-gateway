@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Your School — Notify.inc Portal</title>
+    <meta name="description" content="Register your school on School Notify Portal. Send exam results, fee reminders & announcements to parents via SMS effortlessly.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/school-portal/portal.css">
+</head>
+<body class="auth-page">
+
+<div class="auth-split">
+
+    <!-- Left: Branding Panel -->
+    <div class="auth-brand-panel">
+        <div class="brand-content">
+            <div class="brand-logo">
+                <img src="/assets/notify-logo.svg" alt="Notify.inc" style="width:64px; height:64px; border-radius:50%;">
+                <div class="brand-title-wrap">
+                    <span class="brand-name">Notify.inc</span>
+                    <span class="brand-tag">PORTAL</span>
+                </div>
+            </div>
+            <h1 class="brand-headline">Dispatch Exam Results to Every Parent — Instantly.</h1>
+            <p class="brand-subtext">The #1 Next-Gen School SMS Platform. Direct Excel upload, automatic subject matching & real-time delivery status tracking.</p>
+
+            <div class="brand-features">
+                <div class="feat-item">
+                    <div class="feat-icon-box text-blue">
+                        <i data-lucide="file-spreadsheet"></i>
+                    </div>
+                    <div>
+                        <div class="feat-title">Smart Excel Upload</div>
+                        <div class="feat-desc">Upload grade sheets (.xlsx/.xls) with automatic subject detection</div>
+                    </div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon-box text-green">
+                        <i data-lucide="smartphone"></i>
+                    </div>
+                    <div>
+                        <div class="feat-title">Direct Parent SMS</div>
+                        <div class="feat-desc">Parents get structured report cards directly on their mobile phones</div>
+                    </div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon-box text-purple">
+                        <i data-lucide="shield-check"></i>
+                    </div>
+                    <div>
+                        <div class="feat-title">Dedicated School Gateway</div>
+                        <div class="feat-desc">Send from your school's official Android SIM gateway number safely</div>
+                    </div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-icon-box text-yellow">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <div>
+                        <div class="feat-title">Live Delivery Tracker</div>
+                        <div class="feat-desc">Monitor delivered, pending, and failed messages in real-time</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="brand-pricing">
+                <div class="price-badge">
+                    <span class="price-val">Custom Rates</span>
+                </div>
+                <span class="price-note"><i data-lucide="info" class="inline-icon"></i> Tailored subscription plans & setup fees assigned per school</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Registration Form -->
+    <div class="auth-form-panel">
+        <div class="auth-form-container">
+
+            <!-- Mobile Brand Header (visible < 900px) -->
+            <div class="mobile-brand-header">
+                <div class="brand-logo">
+                    <img src="/assets/notify-logo.svg" alt="Notify.inc" style="width:42px; height:42px; border-radius:50%;">
+                    <div class="brand-title-wrap">
+                        <span class="brand-name">Notify.inc</span>
+                        <span class="brand-tag">SCHOOL PORTAL</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-header">
+                <h2>Register Your School</h2>
+                <p>Already have an account? <a href="/school-portal/login.html" class="auth-link">Sign in here <i data-lucide="arrow-right" class="inline-icon"></i></a></p>
+            </div>
+
+            <!-- Post-Registration Success & Next Steps Guide -->
+            <div id="successMsg" class="next-steps-card" style="display:none;">
+                <div class="next-steps-header">
+                    <i data-lucide="check-circle-2" class="success-icon"></i>
+                    <div>
+                        <h3>Registration Submitted Successfully! 🎉</h3>
+                        <p>Welcome to <strong>School Notify Portal</strong>. Here is your account summary & next steps.</p>
+                    </div>
+                </div>
+
+                <div class="account-summary-grid">
+                    <div class="summary-item">
+                        <span class="summary-lbl">SCHOOL CODE</span>
+                        <span class="summary-val" id="regSchoolCode">SCH-0000</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-lbl">LOCKED MONTHLY RATE</span>
+                        <span class="summary-val text-green" id="regLockedPrice">TZS 25,000 / mo</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-lbl">REST API KEY</span>
+                        <span class="summary-val font-mono" id="regApiKey">sk_live_...</span>
+                    </div>
+                </div>
+
+                <div class="onboarding-steps-title">
+                    <i data-lucide="list-checks" class="section-icon"></i> What Happens Next (4-Step Onboarding):
+                </div>
+
+                <div class="steps-timeline">
+                    <div class="timeline-step">
+                        <div class="step-badge">1</div>
+                        <div class="step-body">
+                            <div class="step-title">Admin Verification Call 📞</div>
+                            <div class="step-desc">Our school onboarding team will call your administrator within 24 hours to confirm school credentials.</div>
+                        </div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-badge">2</div>
+                        <div class="step-body">
+                            <div class="step-title">Gateway Android SIM Installation 📱</div>
+                            <div class="step-desc">We schedule remote or on-site pairing of your school's dedicated Android phone SIM gateway.</div>
+                        </div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-badge">3</div>
+                        <div class="step-body">
+                            <div class="step-title">One-Time Setup Fee Payment 💳</div>
+                            <div class="step-desc">Pay the TZS 150,000 onboarding fee via M-Pesa, Tigo Pesa, Airtel Money, or direct bank transfer.</div>
+                        </div>
+                    </div>
+                    <div class="timeline-step">
+                        <div class="step-badge">4</div>
+                        <div class="step-body">
+                            <div class="step-title">Account Activation & Results Dispatching 🚀</div>
+                            <div class="step-desc">Your account switches to ACTIVE! Teachers log in and start sending exam results to parents in 1 click.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="next-steps-actions">
+                    <a href="login.html" class="btn btn-primary btn-full btn-lg">
+                        <i data-lucide="log-in"></i> Proceed to Login Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <form id="registerForm" onsubmit="event.preventDefault(); handleRegister();">
+
+                <!-- School Info -->
+                <div class="form-section-label">
+                    <i data-lucide="graduation-cap" class="section-icon"></i> School Information
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>School Name <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i data-lucide="building-2" class="input-icon"></i>
+                            <input type="text" id="schoolName" class="gh-input" placeholder="e.g. St. Joseph Secondary School" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>School Type <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i data-lucide="landmark" class="input-icon"></i>
+                            <select id="schoolType" class="gh-input gh-select" required>
+                                <option value="PRIVATE">Private School</option>
+                                <option value="GOVERNMENT">Government School</option>
+                                <option value="INTERNATIONAL">International School</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Region / City <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i data-lucide="map-pin" class="input-icon"></i>
+                            <select id="region" class="gh-input gh-select" required>
+                                <option value="">Select region...</option>
+                                <option>Dar es Salaam</option>
+                                <option>Dodoma</option>
+                                <option>Arusha</option>
+                                <option>Mwanza</option>
+                                <option>Tanga</option>
+                                <option>Mbeya</option>
+                                <option>Morogoro</option>
+                                <option>Zanzibar</option>
+                                <option>Kilimanjaro</option>
+                                <option>Iringa</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Approx. Student Population</label>
+                        <div class="input-with-icon">
+                            <i data-lucide="users" class="input-icon"></i>
+                            <select id="studentCount" class="gh-input gh-select">
+                                <option value="200">Under 300 students</option>
+                                <option value="500">300–700 students</option>
+                                <option value="1000">700–1000 students</option>
+                                <option value="1500">Over 1000 students</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Contact -->
+                <div class="form-section-label" style="margin-top:24px;">
+                    <i data-lucide="user-check" class="section-icon"></i> School Administrator Account
+                </div>
+
+                <div class="form-group">
+                    <label>Full Name <span class="required">*</span></label>
+                    <div class="input-with-icon">
+                        <i data-lucide="user" class="input-icon"></i>
+                        <input type="text" id="adminName" class="gh-input" placeholder="e.g. Mr. John Makamba (Headmaster)" required>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Email Address <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i data-lucide="mail" class="input-icon"></i>
+                            <input type="email" id="adminEmail" class="gh-input" placeholder="admin@school.ac.tz" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i data-lucide="phone" class="input-icon"></i>
+                            <input type="tel" id="adminPhone" class="gh-input" placeholder="+255 7XX XXX XXX" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>Password <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i data-lucide="lock" class="input-icon"></i>
+                            <input type="password" id="password" class="gh-input" placeholder="Min. 8 characters" minlength="8" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password <span class="required">*</span></label>
+                        <div class="input-with-icon">
+                            <i data-lucide="key-round" class="input-icon"></i>
+                            <input type="password" id="confirmPassword" class="gh-input" placeholder="Repeat password" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="formError" class="alert alert-danger" style="display:none;"></div>
+
+                <button type="submit" class="btn btn-primary btn-full btn-lg" id="registerBtn">
+                    <i data-lucide="send"></i> Submit School Registration
+                </button>
+
+                <p class="form-footer-note">By registering, you agree to School Notify Portal terms. We'll contact you within 24 hours to finalize setup.</p>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/school-portal/portal.js"></script>
+<script>
+    lucide.createIcons();
+</script>
+</body>
+</html>

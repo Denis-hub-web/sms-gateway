@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Dashboard — School Notify Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/school-portal/portal.css">
+</head>
+<body class="gh-dark">
+
+<!-- Top Navigation Header -->
+<header class="gh-header">
+    <div class="header-container">
+        <div class="header-left">
+            <a href="dashboard.html" class="brand-link">
+                <img src="/assets/notify-logo.svg" alt="Notify.inc" style="width:32px; height:32px; border-radius:50%;">
+                <div class="brand-title-wrap">
+                    <span class="brand-name">Notify.inc</span>
+                    <span class="brand-tag">PORTAL</span>
+                </div>
+            </a>
+            <nav class="portal-nav">
+                <a href="dashboard.html" class="nav-link active" id="navDashboard"><i data-lucide="layout-dashboard" class="nav-icon"></i> Dashboard</a>
+                <a href="../school/index.html" class="nav-link" id="navResults"><i data-lucide="file-up" class="nav-icon"></i> Send Results</a>
+                <a href="#" class="nav-link" id="navHistory" onclick="showSection('sectionHistory')"><i data-lucide="message-square" class="nav-icon"></i> SMS History</a>
+                <a href="#" class="nav-link" id="navGateway" onclick="showSection('sectionGateway')"><i data-lucide="smartphone" class="nav-icon"></i> Gateway Phone</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <div id="subscriptionBadge" class="sub-badge active">
+                <span class="live-dot pulse-dot"></span>
+                <span id="subBadgeText">Loading...</span>
+            </div>
+            <div class="user-menu" id="userMenuBtn" onclick="toggleUserMenu()">
+                <div class="user-avatar" id="userAvatarChar"><i data-lucide="user" class="avatar-icon"></i></div>
+                <span id="userSchoolName">School</span>
+                <i data-lucide="chevron-down" class="chevron"></i>
+            </div>
+            <div class="user-dropdown" id="userDropdown" style="display:none;">
+                <div class="dropdown-header" id="dropdownSchoolName">School Dashboard</div>
+                <a href="../school/index.html" class="dropdown-item" style="color:var(--gh-green); font-weight:700;"><i data-lucide="file-up" class="drop-icon"></i> 📤 Upload & Send Results</a>
+                <a href="#" class="dropdown-item" onclick="showSection('sectionGateway')"><i data-lucide="smartphone" class="drop-icon"></i> Gateway Status</a>
+                <div class="dropdown-divider"></div>
+                <a href="#" class="dropdown-item dropdown-danger" onclick="doLogout()"><i data-lucide="log-out" class="drop-icon"></i> Sign Out</a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Expired/Inactive Banners -->
+<div id="bannerExpired" class="top-banner banner-warning" style="display:none;">
+    <i data-lucide="alert-triangle" class="inline-icon"></i> <strong>Subscription Expired:</strong> SMS sending is temporarily paused.
+    <a href="#" onclick="showSection('sectionSubscription')" class="banner-link">Renew Subscription Now →</a>
+</div>
+<div id="bannerPending" class="top-banner banner-info" style="display:none;">
+    <i data-lucide="clock" class="inline-icon"></i> <strong>Account Pending Approval:</strong> Your school account will be activated within 24 hours by administrator.
+</div>
+
+<!-- Main Content Area -->
+<main class="main-container">
+
+    <!-- ===== OVERVIEW DASHBOARD ===== -->
+    <section id="sectionDashboard">
+
+        <!-- Welcome Hero -->
+        <div class="welcome-hero">
+            <div class="welcome-text">
+                <h2 id="welcomeHeadline">Welcome to School Notify Portal</h2>
+                <p id="welcomeSub">Real-time SMS dispatch & parent notification hub.</p>
+            </div>
+            <a href="../school/index.html" class="btn btn-primary btn-lg hero-upload-btn">
+                <i data-lucide="file-up"></i> Upload Excel & Send Results
+            </a>
+        </div>
+
+        <!-- Prominent Mobile Quick Action Upload Banner -->
+        <div class="mobile-quick-upload-card" onclick="window.location.href='../school/index.html'">
+            <div class="quick-upload-content">
+                <div class="quick-upload-icon-box">
+                    <i data-lucide="file-up"></i>
+                </div>
+                <div>
+                    <h3 class="quick-upload-title">📤 Upload Students Exam Results</h3>
+                    <p class="quick-upload-desc">Tap here to select Excel files from phone & dispatch grades to parents</p>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-sm" style="pointer-events:none; white-space:nowrap;">
+                Start Upload <i data-lucide="arrow-right" class="btn-icon" style="margin-left:4px;"></i>
+            </button>
+        </div>
+
+        <!-- KPI Cards Row -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-blue">
+                    <i data-lucide="message-square"></i>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-val" id="kpiTotalSms">—</div>
+                    <div class="kpi-label">Total SMS Sent</div>
+                    <div class="kpi-sub">All-time dispatches</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-green">
+                    <i data-lucide="check-circle-2"></i>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-val" id="kpiDelivered">—</div>
+                    <div class="kpi-label">Delivered to Parents</div>
+                    <div class="kpi-sub" id="kpiDeliveredPct">100% success rate</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-red">
+                    <i data-lucide="x-circle"></i>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-val" id="kpiFailed">—</div>
+                    <div class="kpi-label">Failed Delivery</div>
+                    <div class="kpi-sub">Invalid numbers or offline</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon kpi-purple">
+                    <i data-lucide="smartphone"></i>
+                </div>
+                <div class="kpi-body">
+                    <div class="kpi-val" id="kpiGatewayStatus">—</div>
+                    <div class="kpi-label">School Gateway SIM</div>
+                    <div class="kpi-sub" id="kpiGatewayPhone">Not paired</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Status Card -->
+        <div class="gh-card" id="subscriptionStatusCard">
+            <div class="card-header">
+                <div class="card-header-title">
+                    <i data-lucide="credit-card" class="card-title-icon text-blue"></i>
+                    <h3>Subscription & Plan Overview</h3>
+                </div>
+                <button class="btn btn-sm btn-outline" onclick="showSection('sectionSubscription')"><i data-lucide="zap" class="btn-icon"></i> Manage Subscription</button>
+            </div>
+            <div class="card-body">
+                <div class="sub-status-grid">
+                    <div class="sub-status-item">
+                        <div class="sub-status-label">ACTIVE TIER</div>
+                        <div class="sub-status-val" id="subPlanName">—</div>
+                    </div>
+                    <div class="sub-status-item">
+                        <div class="sub-status-label">STATUS</div>
+                        <div class="sub-status-val" id="subStatusBadge">—</div>
+                    </div>
+                    <div class="sub-status-item">
+                        <div class="sub-status-label">EXPIRES ON</div>
+                        <div class="sub-status-val" id="subExpiry">—</div>
+                    </div>
+                    <div class="sub-status-item">
+                        <div class="sub-status-label">SETUP FEE</div>
+                        <div class="sub-status-val" id="subSetupFee">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-Generated API Key Card -->
+        <div class="gh-card" id="apiKeyCard">
+            <div class="card-header">
+                <div class="card-header-title">
+                    <i data-lucide="key-round" class="card-title-icon text-green"></i>
+                    <h3>Auto-Generated REST API Key</h3>
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="autoLinkApiKey()"><i data-lucide="zap" class="btn-icon"></i> Auto-Link to Results Engine</button>
+            </div>
+            <div class="card-body">
+                <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:280px; position:relative;">
+                        <input type="text" id="displayApiKey" class="gh-input" readonly value="sk_live_loading..." style="font-family:var(--font-mono); font-weight:600; background:rgba(0,0,0,0.3); letter-spacing:0.5px;">
+                    </div>
+                    <button class="btn btn-outline" onclick="copyApiKey()"><i data-lucide="copy" class="btn-icon"></i> Copy Key</button>
+                    <a href="../school/index.html" class="btn btn-primary"><i data-lucide="external-link" class="btn-icon"></i> Launch Results Engine</a>
+                </div>
+                <div style="font-size:12px; color:var(--gh-text-muted); margin-top:10px; display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="shield-check" style="width:14px; height:14px; color:var(--gh-green);"></i>
+                    This REST API key was auto-created upon registration and authorizes your school to dispatch SMS via your Android gateway.
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Action Cards -->
+        <div class="quick-actions-grid">
+            <a href="../school/index.html" class="action-card">
+                <div class="action-icon text-blue"><i data-lucide="file-spreadsheet"></i></div>
+                <div class="action-text">
+                    <div class="action-title">Upload Excel & Dispatch SMS</div>
+                    <div class="action-desc">Merge student results with parent contact list and send instantly</div>
+                </div>
+                <i data-lucide="arrow-right" class="action-arrow"></i>
+            </a>
+            <a href="#" class="action-card" onclick="showSection('sectionHistory')">
+                <div class="action-icon text-green"><i data-lucide="history"></i></div>
+                <div class="action-text">
+                    <div class="action-title">Live SMS History</div>
+                    <div class="action-desc">Review delivery reports and message timestamps</div>
+                </div>
+                <i data-lucide="arrow-right" class="action-arrow"></i>
+            </a>
+            <a href="#" class="action-card" onclick="showSection('sectionGateway')">
+                <div class="action-icon text-purple"><i data-lucide="cpu"></i></div>
+                <div class="action-text">
+                    <div class="action-title">School Gateway SIM</div>
+                    <div class="action-desc">Check battery, signal strength & SIM connection</div>
+                </div>
+                <i data-lucide="arrow-right" class="action-arrow"></i>
+            </a>
+            <a href="#" class="action-card" onclick="showSection('sectionSubscription')">
+                <div class="action-icon text-yellow"><i data-lucide="shield-check"></i></div>
+                <div class="action-text">
+                    <div class="action-title">Plan Renewals & Upgrades</div>
+                    <div class="action-desc">View student limits, pricing tiers & renewal dates</div>
+                </div>
+                <i data-lucide="arrow-right" class="action-arrow"></i>
+            </a>
+        </div>
+
+    </section>
+
+    <!-- ===== SMS HISTORY ===== -->
+    <section id="sectionHistory" style="display:none;">
+        <div class="section-hero">
+            <h2><i data-lucide="message-square" class="hero-icon"></i> SMS Dispatch Logs</h2>
+            <p>Real-time record of all messages sent from your school account</p>
+        </div>
+        <div class="gh-card">
+            <div class="card-body p0">
+                <table class="gh-table">
+                    <thead><tr>
+                        <th>Phone Number</th>
+                        <th>Message Content</th>
+                        <th>Delivery Status</th>
+                        <th>Sent Time</th>
+                    </tr></thead>
+                    <tbody id="smsHistoryBody">
+                        <tr><td colspan="4" class="empty-cell">Loading SMS history logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== GATEWAY PHONE ===== -->
+    <section id="sectionGateway" style="display:none;">
+        <div class="section-hero">
+            <h2><i data-lucide="smartphone" class="hero-icon"></i> School Gateway Device Status</h2>
+            <p>Your dedicated Android SIM device that broadcasts SMS to parents</p>
+        </div>
+        <div id="gatewayContent">
+            <div class="gh-card">
+                <div class="card-body" style="text-align:center; padding:40px;">
+                    <div style="font-size:48px; margin-bottom:16px;"><i data-lucide="loader" class="spin-icon"></i></div>
+                    <h3>Loading gateway telemetry...</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SUBSCRIPTION ===== -->
+    <section id="sectionSubscription" style="display:none;">
+        <div class="section-hero">
+            <h2><i data-lucide="credit-card" class="hero-icon"></i> Your School Subscription Package</h2>
+            <p>Tailored custom subscription plan & billing details assigned for your school</p>
+        </div>
+
+        <div class="gh-card">
+            <div class="card-header">
+                <div class="card-header-title">
+                    <i data-lucide="shield-check" class="card-title-icon text-green"></i>
+                    <h3 id="customSubHeader">Custom School Package</h3>
+                </div>
+                <span id="customSubBadge" class="status-badge bg-green">ACTIVE</span>
+            </div>
+            <div class="card-body">
+                <div class="kpi-grid" style="margin-bottom:24px;">
+                    <div class="kpi-card">
+                        <div class="kpi-icon kpi-green"><i data-lucide="calendar"></i></div>
+                        <div class="kpi-body">
+                            <div class="kpi-val" id="dashDaysRemaining">—</div>
+                            <div class="kpi-label">Days Remaining</div>
+                            <div class="kpi-sub" id="dashExpiryDate">Expires: Not set</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon kpi-blue"><i data-lucide="banknote"></i></div>
+                        <div class="kpi-body">
+                            <div class="kpi-val" id="dashMonthlyRate">TZS 25,000</div>
+                            <div class="kpi-label">Custom Monthly Rate</div>
+                            <div class="kpi-sub">Assigned by Portal Admin</div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon kpi-purple"><i data-lucide="wrench"></i></div>
+                        <div class="kpi-body">
+                            <div class="kpi-val" id="dashSetupFeeVal">TZS 150,000</div>
+                            <div class="kpi-label">Setup & Installation Fee</div>
+                            <div class="kpi-sub" id="dashSetupStatus">Paid</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="renewal-contact-box">
+                    <h4 style="margin-bottom:8px; font-weight:800; font-size:15px;">Need Subscription Renewal or Rate Changes?</h4>
+                    <p>Contact your dedicated School Notify account representative to extend days or modify billing terms:</p>
+                    <div class="contact-options">
+                        <a href="https://wa.me/255700000000" target="_blank" class="contact-btn whatsapp">
+                            <i data-lucide="message-circle"></i> WhatsApp Support
+                        </a>
+                        <a href="tel:+255700000000" class="contact-btn phone">
+                            <i data-lucide="phone"></i> Call Support
+                        </a>
+                    </div>
+                    <p class="renewal-note"><i data-lucide="building" class="inline-icon"></i> Mobile Money payments supported: M-Pesa, Tigo Pesa, Airtel Money & Direct Bank Wire.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<script src="/school-portal/portal.js"></script>
+<script>
+    lucide.createIcons();
+</script>
+</body>
+</html>
