@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: sms-gateway-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DB_HOST
+        sync: false          # Set manually from Supabase
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        sync: false          # Set manually from Supabase
+      - key: DB_USER
+        sync: false          # Set manually from Supabase
+      - key: DB_PASSWORD
+        sync: false          # Set manually from Supabase
+      - key: SERVER_PORT
+        value: "8080"
+      - key: JWT_SECRET
+        generateValue: true  # Render auto-generates a secure random value
+      - key: CORS_ORIGINS
+        sync: false          # Set after Vercel deploy e.g. https://sms-admin.vercel.app

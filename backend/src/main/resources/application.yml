@@ -3,15 +3,20 @@ spring:
     name: sms-gateway-backend
 
   datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:smsgateway}
+    # Supports both:
+    #   - DATABASE_URL (Supabase/Render single connection string)
+    #   - Individual DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD vars (Docker/local)
+    url: ${DATABASE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:smsgateway}}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
+      maximum-pool-size: 10
+      minimum-idle: 2
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+      data-source-properties:
+        sslmode: ${DB_SSL_MODE:disable}
 
   jpa:
     hibernate:
