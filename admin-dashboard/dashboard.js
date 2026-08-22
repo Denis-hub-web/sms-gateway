@@ -33,16 +33,24 @@ async function apiCall(path, method = 'GET', body = null) {
     };
     if (body) opts.body = JSON.stringify(body);
 
-    const res = await fetch(url, opts);
+    let res;
+    try {
+        res = await fetch(url, opts);
+    } catch (netErr) {
+        throw new Error(`Cannot connect to backend (${API_BASE}). If Render was asleep, wait ~30s for it to wake up and try again.`);
+    }
 
     if (res.status === 401 || res.status === 403) {
+        if (path === '/api/auth/login') {
+            throw new Error('Invalid credentials. Default: admin / Admin@123');
+        }
         logout();
         throw new Error('Session expired or unauthorized. Please sign in again.');
     }
 
     if (!res.ok) {
         const err = await res.json().catch(() => ({ message: res.statusText }));
-        throw new Error(err.message || `HTTP ${res.status}`);
+        throw new Error(err.message || `Server returned HTTP ${res.status}`);
     }
 
     const text = await res.text();
@@ -54,8 +62,12 @@ async function login() {
     const username  = document.getElementById('loginUsername').value.trim();
     const password  = document.getElementById('loginPassword').value;
     const errorEl   = document.getElementById('loginError');
+    const loginBtn  = document.getElementById('loginBtn');
 
     errorEl.textContent = '';
+    const origBtnHtml = loginBtn.innerHTML;
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '⏳ Authenticating with server...';
 
     try {
         API_BASE = serverUrl;
@@ -64,10 +76,15 @@ async function login() {
         ACCESS_TOKEN = data.accessToken;
         localStorage.setItem('accessToken', ACCESS_TOKEN);
         localStorage.setItem('serverUrl', API_BASE);
+        if (data.username) localStorage.setItem('username', data.username);
 
         showAppShell();
     } catch (e) {
+        console.error('Login error:', e);
         errorEl.textContent = e.message || 'Login failed. Check credentials.';
+    } finally {
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = origBtnHtml;
     }
 }
 
