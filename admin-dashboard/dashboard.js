@@ -3,7 +3,7 @@
  * High-performance GitHub-style client with Live SSE Streaming & API Keys Management
  */
 
-let API_BASE = localStorage.getItem('serverUrl') || 'http://localhost:8080';
+let API_BASE = localStorage.getItem('serverUrl') || 'https://sms-gateway-qtmi.onrender.com';
 let ACCESS_TOKEN = localStorage.getItem('accessToken') || null;
 let currentTab = 'dashboard';
 let sseSource = null;

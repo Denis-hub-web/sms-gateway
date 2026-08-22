@@ -13,7 +13,7 @@ let dispatchedMessagesMap = {};
 let autoRefreshTimer = null;
 let currentFilter = 'ALL';
 
-let GATEWAY_URL = localStorage.getItem('schoolGatewayUrl') || 'https://sms.simukitaa.com';
+let GATEWAY_URL = localStorage.getItem('schoolGatewayUrl') || 'https://sms-gateway-qtmi.onrender.com';
 let API_KEY = localStorage.getItem('schoolApiKey') || '';
 
 // ============================================================

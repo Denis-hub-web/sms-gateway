@@ -3,7 +3,7 @@
  * Handles: login, registration, dashboard telemetry, plan renewals
  */
 
-const PORTAL_API = window.location.origin;
+const PORTAL_API = localStorage.getItem('portalApiUrl') || (window.location.port === '8080' ? window.location.origin : 'https://sms-gateway-qtmi.onrender.com');
 let selectedPlan = 'STARTER';
 
 // ── On Page Load ─────────────────────────────────────────────
