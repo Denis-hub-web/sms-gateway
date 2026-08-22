@@ -1,6 +1,6 @@
 /**
- * School Exam Results & Parent Directory Merger
- * Dual Excel (.xlsx/.xls) AI Phone Column Detection, Name Matching & Live Auto-Refresh Tracker
+ * School Exam Results & Parent Directory Merger Engine
+ * Client-Side Excel (.xlsx / .xls) Parser, AI Column Detection, Fuzzy Matching & SMS Dispatcher
  */
 
 let uploadMode = 'dual'; // 'dual' or 'single'
@@ -15,22 +15,18 @@ let currentFilter = 'ALL';
 
 let GATEWAY_URL = localStorage.getItem('schoolGatewayUrl') || 'https://sms-gateway-qtmi.onrender.com';
 let API_KEY = localStorage.getItem('schoolApiKey') || '';
+let currentSchoolInfo = null;
 
 // ============================================================
-// Initialization & Config
+// Initialization & School Identity
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('cfgGatewayUrl').value = GATEWAY_URL;
-    document.getElementById('cfgApiKey').value = API_KEY;
-
     initSchoolIdentity();
+    setupDropzones();
     startAutoRefreshTracker();
 });
 
-let currentSchoolInfo = null;
-
 async function initSchoolIdentity() {
-    // 1. Check URL parameters for ?schoolCode= or ?apiKey= or ?tenantId=
     const params = new URLSearchParams(window.location.search);
     const codeParam = params.get('schoolCode') || params.get('code') || params.get('tenantId');
     const keyParam  = params.get('apiKey') || params.get('key');
@@ -40,13 +36,12 @@ async function initSchoolIdentity() {
         localStorage.setItem('schoolApiKey', API_KEY);
     }
 
-    // 2. Check logged-in tenant in localStorage
     let savedTenant = null;
     try {
         savedTenant = JSON.parse(localStorage.getItem('schoolTenant'));
-    } catch(e){}
+    } catch (e) {}
 
-    // 3. Resolve School Info from backend if codeParam or session exists
+    // Lookup school info by code if passed
     if (codeParam) {
         try {
             const res = await fetch(`${GATEWAY_URL}/api/school/info-by-code/${codeParam}`);
@@ -57,7 +52,7 @@ async function initSchoolIdentity() {
                     localStorage.setItem('schoolApiKey', API_KEY);
                 }
             }
-        } catch(e) {}
+        } catch (e) {}
     }
 
     if (!currentSchoolInfo && savedTenant) {
@@ -68,10 +63,12 @@ async function initSchoolIdentity() {
             apiKey: savedTenant.apiKey || API_KEY,
             subscriptionStatus: savedTenant.subscriptionStatus || 'ACTIVE'
         };
-        if (savedTenant.apiKey) API_KEY = savedTenant.apiKey;
+        if (savedTenant.apiKey) {
+            API_KEY = savedTenant.apiKey;
+            localStorage.setItem('schoolApiKey', API_KEY);
+        }
     }
 
-    // Fallback if no session found
     if (!currentSchoolInfo) {
         currentSchoolInfo = {
             schoolName: 'St. Joseph Secondary School',
@@ -83,153 +80,199 @@ async function initSchoolIdentity() {
     }
 
     applySchoolIdentityToUI(currentSchoolInfo);
+
+    if (document.getElementById('cfgGatewayUrl')) {
+        document.getElementById('cfgGatewayUrl').value = GATEWAY_URL;
+    }
+    if (document.getElementById('cfgApiKey')) {
+        document.getElementById('cfgApiKey').value = API_KEY;
+    }
 }
 
 function applySchoolIdentityToUI(info) {
-    const sName  = info.schoolName || 'School';
-    const sCode  = info.schoolCode || 'SCH';
-    const sRegion= info.region || 'Tanzania';
-    const sKey   = info.apiKey || API_KEY || 'sk_live_...';
-    const status = info.subscriptionStatus || 'ACTIVE';
+    const sName   = info.schoolName || 'School';
+    const sCode   = info.schoolCode || 'SCH';
+    const sRegion = info.region || 'Tanzania';
+    const sKey    = info.apiKey || API_KEY || 'sk_live_...';
+    const status  = info.subscriptionStatus || 'ACTIVE';
 
-    if (document.getElementById('schoolIdentityTitle')) document.getElementById('schoolIdentityTitle').textContent = sName;
-    if (document.getElementById('schoolIdentityCode'))  document.getElementById('schoolIdentityCode').textContent = sCode;
-    if (document.getElementById('schoolIdentityRegion'))document.getElementById('schoolIdentityRegion').textContent = sRegion;
-    if (document.getElementById('schoolIdentityKey'))   document.getElementById('schoolIdentityKey').textContent = sKey.substring(0, 12) + '...';
-    if (document.getElementById('schoolAvatarPill'))    document.getElementById('schoolAvatarPill').textContent = sName.charAt(0).toUpperCase();
+    if (document.getElementById('schoolIdentityTitle')) {
+        document.getElementById('schoolIdentityTitle').textContent = sName;
+    }
+    if (document.getElementById('schoolIdentityCode')) {
+        document.getElementById('schoolIdentityCode').textContent = sCode;
+    }
+    if (document.getElementById('schoolIdentityRegion')) {
+        document.getElementById('schoolIdentityRegion').textContent = sRegion;
+    }
+    if (document.getElementById('schoolIdentityKey')) {
+        document.getElementById('schoolIdentityKey').textContent = sKey.length > 15 ? sKey.substring(0, 14) + '...' : sKey;
+    }
+    if (document.getElementById('schoolAvatarPill')) {
+        document.getElementById('schoolAvatarPill').textContent = sName.charAt(0).toUpperCase();
+    }
 
     const badge = document.getElementById('schoolIdentityStatusBadge');
     if (badge) {
         badge.className = `status-badge ${status === 'ACTIVE' ? 'bg-green' : 'bg-yellow'}`;
-        badge.innerHTML = status === 'ACTIVE' ? '🟢 ACTIVE' : '⏳ PENDING';
+        badge.innerHTML = `<i data-lucide="${status === 'ACTIVE' ? 'check-circle-2' : 'clock'}" class="inline-icon"></i> ${status}`;
     }
 
     if (window.lucide) lucide.createIcons();
 }
 
 function switchSchoolPrompt() {
-    const code = prompt('Enter School Code or REST API Key to switch active school identity:');
+    const code = prompt('Enter School Code or API Key to link:');
     if (!code) return;
     window.location.href = `?schoolCode=${encodeURIComponent(code.trim())}`;
 }
 
-function openConfigModal() {
-    document.getElementById('configModal').style.display = 'flex';
-}
-
-function closeConfigModal() {
-    document.getElementById('configModal').style.display = 'none';
-}
-
-function saveConfig() {
-    GATEWAY_URL = document.getElementById('cfgGatewayUrl').value.trim().replace(/\/$/, '');
-    API_KEY = document.getElementById('cfgApiKey').value.trim();
-
-    localStorage.setItem('schoolGatewayUrl', GATEWAY_URL);
-    localStorage.setItem('schoolApiKey', API_KEY);
-
-    closeConfigModal();
-    logTerminalEvent('CONFIG', 'Updated Gateway API Key & Host URL settings.');
-    alert('Gateway settings saved!');
-}
-
-function switchUploadMode(mode) {
+// ============================================================
+// Workflow Modes & Dropzones
+// ============================================================
+function setUploadMode(mode) {
     uploadMode = mode;
-    document.getElementById('tabModeDual').classList.toggle('active', mode === 'dual');
-    document.getElementById('tabModeSingle').classList.toggle('active', mode === 'single');
+    document.getElementById('btnDualMode').classList.toggle('active', mode === 'dual');
+    document.getElementById('btnSingleMode').classList.toggle('active', mode === 'single');
 
-    document.getElementById('dualUploadSection').style.display = mode === 'dual' ? 'grid' : 'none';
-    document.getElementById('singleUploadSection').style.display = mode === 'single' ? 'block' : 'none';
+    const dzContacts = document.getElementById('dzContacts');
+    const step2Title = document.getElementById('step2Title');
+
+    if (mode === 'single') {
+        dzContacts.style.display = 'none';
+        step2Title.textContent = 'Upload Single Combined Excel Sheet';
+        document.querySelector('#dzResults h4').textContent = 'Combined Results & Contacts File (.xlsx)';
+        document.querySelector('#dzResults p').innerHTML = 'Must contain <strong>Student Name</strong>, <strong>Parent Phone</strong> & <strong>Grade Columns</strong>';
+    } else {
+        dzContacts.style.display = 'block';
+        step2Title.textContent = 'Upload Excel Files';
+        document.querySelector('#dzResults h4').textContent = '1. Exam Results Excel File (.xlsx)';
+        document.querySelector('#dzResults p').innerHTML = 'Must contain <strong>Student Name</strong> column and grade columns like <strong>Math (A)</strong>, <strong>Physics (B)</strong>';
+    }
+
+    rawResultsRows = null;
+    rawContactsRows = null;
+    document.getElementById('badgeResults').textContent = 'Click or drag & drop file';
+    document.getElementById('badgeContacts').textContent = 'Click or drag & drop file';
+    document.getElementById('dzResults').classList.remove('loaded');
+    document.getElementById('dzContacts').classList.remove('loaded');
+    document.getElementById('cardResultsSection').style.display = 'none';
 }
 
-function logTerminalEvent(type, text) {
-    const box = document.getElementById('terminalLog');
-    if (!box) return;
+function setupDropzones() {
+    ['dzResults', 'dzContacts'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
 
-    const time = new Date().toLocaleTimeString();
-    let typeCls = 'color:var(--gh-blue)';
-    if (type === 'DELIVERED') typeCls = 'color:var(--gh-green)';
-    if (type === 'FAILED') typeCls = 'color:var(--gh-red)';
-    if (type === 'SENDING' || type === 'QUEUED') typeCls = 'color:var(--gh-yellow)';
+        ['dragenter', 'dragover'].forEach(eventName => {
+            el.addEventListener(eventName, e => {
+                e.preventDefault();
+                e.stopPropagation();
+                el.classList.add('dragover');
+            }, false);
+        });
 
-    const line = document.createElement('div');
-    line.className = 'terminal-line';
-    line.innerHTML = `<span class="t-time">[${time}]</span> <strong style="${typeCls}">[${type}]</strong> ${text}`;
+        ['dragleave', 'drop'].forEach(eventName => {
+            el.addEventListener(eventName, e => {
+                e.preventDefault();
+                e.stopPropagation();
+                el.classList.remove('dragover');
+            }, false);
+        });
 
-    box.prepend(line);
-    if (box.children.length > 50) box.removeChild(box.lastChild);
-}
+        el.addEventListener('drop', e => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (!files || !files.length) return;
 
-// ============================================================
-// File Handlers
-// ============================================================
-function handleFileResults(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    readExcelFile(file, rows => {
-        rawResultsRows = rows;
-        document.getElementById('resultsFileNameText').textContent = file.name;
-        document.getElementById('resultsFileBadge').textContent = `✅ ${rows.length} grade rows loaded`;
-        document.getElementById('resultsFileBadge').classList.add('loaded');
-
-        logTerminalEvent('FILE', `Loaded Results spreadsheet: ${file.name} (${rows.length} rows)`);
-        checkAndMergeFiles();
+            if (id === 'dzResults') {
+                processResultsFile(files[0]);
+            } else {
+                processContactsFile(files[0]);
+            }
+        }, false);
     });
 }
 
-function handleFileContacts(event) {
+// ============================================================
+// File Selection Handlers
+// ============================================================
+function handleResultsFileUpload(event) {
     const file = event.target.files[0];
-    if (!file) return;
-
-    readExcelFile(file, rows => {
-        rawContactsRows = rows;
-        document.getElementById('contactsFileNameText').textContent = file.name;
-        document.getElementById('contactsFileBadge').textContent = `✅ ${rows.length} contact rows loaded`;
-        document.getElementById('contactsFileBadge').classList.add('loaded');
-
-        logTerminalEvent('FILE', `Loaded Parent Contacts spreadsheet: ${file.name} (${rows.length} rows)`);
-        checkAndMergeFiles();
-    });
+    if (file) processResultsFile(file);
 }
 
-function handleFileSingle(event) {
+function handleContactsFileUpload(event) {
     const file = event.target.files[0];
-    if (!file) return;
+    if (file) processContactsFile(file);
+}
+
+function processResultsFile(file) {
+    const badge = document.getElementById('badgeResults');
+    const dz = document.getElementById('dzResults');
+    badge.textContent = `⏳ Reading ${file.name}...`;
 
     readExcelFile(file, rows => {
         rawResultsRows = rows;
+        badge.textContent = `✅ ${file.name} (${rows.length} rows)`;
+        dz.classList.add('loaded');
+
+        if (uploadMode === 'single') {
+            rawContactsRows = rows;
+        }
+        checkAndMerge();
+    });
+}
+
+function processContactsFile(file) {
+    const badge = document.getElementById('badgeContacts');
+    const dz = document.getElementById('dzContacts');
+    badge.textContent = `⏳ Reading ${file.name}...`;
+
+    readExcelFile(file, rows => {
         rawContactsRows = rows;
-        logTerminalEvent('FILE', `Loaded Combined spreadsheet: ${file.name} (${rows.length} rows)`);
-        checkAndMergeFiles();
+        badge.textContent = `✅ ${file.name} (${rows.length} rows)`;
+        dz.classList.add('loaded');
+        checkAndMerge();
     });
 }
 
 function readExcelFile(file, callback) {
+    if (typeof XLSX === 'undefined') {
+        alert('Excel parsing library is loading. Please try again in a second.');
+        return;
+    }
+
     const reader = new FileReader();
     reader.onload = e => {
         try {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            const sheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[sheetName];
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
             const json = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
             if (!json.length) {
-                alert(`File ${file.name} has no data rows.`);
+                alert(`The file "${file.name}" contains no data rows.`);
                 return;
             }
             callback(json);
         } catch (err) {
-            alert(`Error reading file ${file.name}: ${err.message}`);
+            alert(`Error reading Excel file: ${err.message}`);
         }
     };
     reader.readAsArrayBuffer(file);
 }
 
 // ============================================================
-// AI Phone Column Detection Heuristic
+// AI Column Detection & Merging Logic
 // ============================================================
+function detectNameColumn(rows) {
+    if (!rows || !rows.length) return null;
+    const headers = Object.keys(rows[0]);
+    return headers.find(h => /name|student|mwanafunzi|jina|full_name/i.test(h)) || headers[0];
+}
+
 function detectPhoneColumn(rows) {
     if (!rows || !rows.length) return null;
     const headers = Object.keys(rows[0]);
@@ -247,21 +290,18 @@ function detectPhoneColumn(rows) {
         }
         if (matchCount >= 2) return header;
     }
-
     return headers[1] || headers[0];
 }
 
-function detectNameColumn(rows) {
-    if (!rows || !rows.length) return null;
-    const headers = Object.keys(rows[0]);
-    return headers.find(h => /name|student|mwanafunzi|jina|full_name/i.test(h)) || headers[0];
+function normalizeName(name) {
+    return String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
-// ============================================================
-// Dual File Fuzzy Matching & Merging Engine
-// ============================================================
-function checkAndMergeFiles() {
+function checkAndMerge() {
     if (uploadMode === 'dual' && (!rawResultsRows || !rawContactsRows)) {
+        return;
+    }
+    if (uploadMode === 'single' && !rawResultsRows) {
         return;
     }
 
@@ -272,7 +312,7 @@ function checkAndMergeFiles() {
     const resHeaders = Object.keys(rawResultsRows[0]);
     subjectColumns = resHeaders.filter(h =>
         /\(.*\)/.test(h) ||
-        (/math|english|science|physics|chemistry|biology|geography|history|civics|kiswahili|ict/i.test(h) && h !== resultsNameCol)
+        (/math|english|science|physics|chemistry|biology|geography|history|civics|kiswahili|ict|kisw|hist/i.test(h) && h !== resultsNameCol)
     );
 
     const contactsMap = {};
@@ -325,154 +365,97 @@ function checkAndMergeFiles() {
             phone: matchedPhone || 'No Phone',
             isMatched: isMatched,
             subjects: subjects,
-            subjectSummaryText: subjectSummaryList.join(', ') || 'No grades listed',
-            position: idx + 1,
-            smsStatus: isMatched ? 'NOT_SENT' : 'MISSING',
+            subjectSummaryText: subjectSummaryList.join(', ') || 'Grades recorded',
+            smsStatus: isMatched ? 'READY' : 'NO_PHONE',
             messageUid: null
         };
     });
 
-    const totalStudents = studentsData.length;
-    studentsData.forEach(s => s.totalStudents = totalStudents);
+    document.getElementById('statTotalStudents').textContent = studentsData.length;
+    document.getElementById('statMatchedPhones').textContent = matchedCount;
+    document.getElementById('statDetectedSubjects').textContent = subjectColumns.length;
+    document.getElementById('statReadySms').textContent = matchedCount;
 
-    const matchPercent = Math.round((matchedCount / (totalStudents || 1)) * 100);
-    document.getElementById('statMatchRate').textContent = `${matchPercent}%`;
-    document.getElementById('statMatchSummary').textContent = `${matchedCount} / ${totalStudents} Matched`;
+    document.getElementById('cardResultsSection').style.display = 'block';
 
-    document.getElementById('statSubjectCount').textContent = subjectColumns.length;
-    document.getElementById('statSubjectList').textContent = subjectColumns.map(c => c.replace(/\(.*\)/, '').trim()).join(', ') || 'Auto-detected';
-    document.getElementById('statPhoneColName').textContent = contactsPhoneCol || 'Auto-Detected';
-
-    document.getElementById('progressCard').style.display = 'block';
-    document.getElementById('statsRow').style.display = 'grid';
-    document.getElementById('templateCard').style.display = 'block';
-    document.getElementById('resultsTableCard').style.display = 'block';
-    document.getElementById('terminalCard').style.display = 'block';
-    document.getElementById('sendAllBtn').disabled = false;
-
-    logTerminalEvent('MERGE', `Successfully merged ${matchedCount}/${totalStudents} student records with parent phone numbers (${matchPercent}% match rate).`);
-
-    updateSmsPreview();
-    updateProgressStats();
+    updateSmsPreviews();
     renderTable();
-}
 
-function normalizeName(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-// ============================================================
-// Live Progress Meter & Counters
-// ============================================================
-function updateProgressStats() {
-    const total = studentsData.length;
-    const delivered = studentsData.filter(s => s.smsStatus === 'DELIVERED').length;
-    const sending = studentsData.filter(s => ['PENDING','SENDING','SENT'].includes(s.smsStatus)).length;
-    const failed = studentsData.filter(s => ['FAILED','EXPIRED'].includes(s.smsStatus)).length;
-    const missing = studentsData.filter(s => s.phone === 'No Phone' || s.smsStatus === 'MISSING').length;
-
-    document.getElementById('pstatTotal').textContent = total;
-    document.getElementById('pstatDelivered').textContent = delivered;
-    document.getElementById('pstatSending').textContent = sending;
-    document.getElementById('pstatFailed').textContent = failed;
-    document.getElementById('pstatMissing').textContent = missing;
-
-    // Filter pill counters
-    document.getElementById('cntFilterAll').textContent = total;
-    document.getElementById('cntFilterDelivered').textContent = delivered;
-    document.getElementById('cntFilterSending').textContent = sending;
-    document.getElementById('cntFilterFailed').textContent = failed;
-    document.getElementById('cntFilterMissing').textContent = missing;
-
-    const completed = delivered + failed;
-    const percent = total > 0 ? Math.round((completed / (total - missing || 1)) * 100) : 0;
-
-    document.getElementById('progressBarFill').style.width = `${Math.min(percent, 100)}%`;
-    document.getElementById('progressPercentTag').textContent = `${percent}% Completed`;
-
-    document.getElementById('statSentCount').textContent = sending + delivered;
-    document.getElementById('statDeliveredCount').textContent = `${delivered} Delivered`;
-}
-
-function setTableFilter(filter) {
-    currentFilter = filter;
-    document.querySelectorAll('.filter-pill').forEach(btn => {
-        btn.classList.toggle('active', btn.textContent.startsWith(filter === 'ALL' ? 'All' : filter === 'DELIVERED' ? '🟢' : filter === 'SENDING' ? '⏳' : filter === 'FAILED' ? '🔴' : '⚠️'));
-    });
-    renderTable();
+    document.getElementById('cardResultsSection').scrollIntoView({ behavior: 'smooth' });
 }
 
 // ============================================================
-// SMS Template Preview Engine
+// SMS Template Previews
 // ============================================================
-function updateSmsPreview() {
+function updateSmsPreviews() {
     if (!studentsData.length) return;
+    const template = document.getElementById('smsTemplateText').value;
+    const sample = studentsData[0];
+    const preview = formatMessage(template, sample);
+    document.getElementById('smsPreviewSample').textContent = preview;
 
-    const template = document.getElementById('smsTemplateInput').value;
-    const previewText = formatSmsMessage(template, studentsData[0]);
-    document.getElementById('smsPreviewBox').textContent = previewText;
+    renderTable();
 }
 
-function formatSmsMessage(template, student) {
+function formatMessage(template, student) {
+    const schoolName = currentSchoolInfo ? currentSchoolInfo.schoolName : 'School';
     return template
-        .replace(/\{StudentName\}/g, student.name)
-        .replace(/\{ParentPhone\}/g, student.phone)
-        .replace(/\{SubjectResults\}/g, student.subjectSummaryText)
-        .replace(/\{Position\}/g, student.position)
-        .replace(/\{TotalStudents\}/g, student.totalStudents);
+        .replace(/\{STUDENT_NAME\}/g, student.name)
+        .replace(/\{SUBJECTS_SCORES\}/g, student.subjectSummaryText)
+        .replace(/\{SCHOOL_NAME\}/g, schoolName);
 }
 
 // ============================================================
 // Table Rendering & Filters
 // ============================================================
+function filterTable(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.table-toolbar .gh-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderTable();
+}
+
+function searchStudentsTable() {
+    renderTable();
+}
+
 function renderTable() {
     const tbody = document.getElementById('tableBody');
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    if (!tbody) return;
+
+    const searchTerm = (document.getElementById('searchTableInput')?.value || '').toLowerCase().trim();
+    const template = document.getElementById('smsTemplateText')?.value || '';
 
     const filtered = studentsData.filter(s => {
         const matchesSearch = s.name.toLowerCase().includes(searchTerm) || s.phone.includes(searchTerm);
         if (!matchesSearch) return false;
 
-        if (currentFilter === 'DELIVERED') return s.smsStatus === 'DELIVERED';
-        if (currentFilter === 'SENDING') return ['PENDING','SENDING','SENT'].includes(s.smsStatus);
-        if (currentFilter === 'FAILED') return ['FAILED','EXPIRED'].includes(s.smsStatus);
-        if (currentFilter === 'MISSING') return s.phone === 'No Phone' || s.smsStatus === 'MISSING';
+        if (currentFilter === 'SENT') return ['SENT', 'DELIVERED'].includes(s.smsStatus);
+        if (currentFilter === 'FAILED') return s.smsStatus === 'FAILED';
         return true;
     });
 
     if (!filtered.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-cell">No matching student records found for filter.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-cell" style="text-align:center; padding:30px; color:var(--gh-text-muted);">No matching students found.</td></tr>';
         return;
     }
 
     tbody.innerHTML = filtered.map(s => {
-        const gradePills = Object.entries(s.subjects).map(([subj, gr]) => `
-            <span class="grade-pill">${subj}: <b>${gr}</b></span>
-        `).join('');
-
-        const statusBadge = getStatusBadgeHtml(s.smsStatus);
-        const matchBadge = s.isMatched
-            ? '<span class="badge-status badge-delivered">🟢 MATCHED</span>'
-            : '<span class="badge-status badge-failed">⚠️ NO PHONE</span>';
-
-        const avatarInitial = s.name ? s.name.charAt(0).toUpperCase() : 'S';
+        const preview = formatMessage(template, s);
+        const statusBadge = getStatusBadge(s.smsStatus);
+        const gradeSummary = Object.entries(s.subjects).map(([k, v]) => `<strong>${k}:</strong> ${v}`).join(' | ') || s.subjectSummaryText;
 
         return `
             <tr>
-                <td style="font-family:var(--font-mono); font-size:11px">${s.id}</td>
-                <td>
-                    <div class="student-pill">
-                        <div class="student-avatar">${avatarInitial}</div>
-                        <span style="font-weight:600">${s.name}</span>
-                    </div>
-                </td>
-                <td style="font-family:var(--font-mono); font-size:12px">${s.phone}</td>
-                <td>${gradePills || s.subjectSummaryText}</td>
-                <td>${matchBadge}</td>
+                <td>${s.id}</td>
+                <td><strong>${s.name}</strong></td>
+                <td><code style="color:${s.phone !== 'No Phone' ? 'var(--gh-green)' : 'var(--gh-red)'}">${s.phone}</code></td>
+                <td style="font-size:12px;">${gradeSummary}</td>
+                <td style="font-size:12px; max-width:280px; color:var(--gh-text-muted);">${preview}</td>
                 <td>${statusBadge}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline" onclick="sendSingleStudentSms(${s.id - 1})" ${s.phone === 'No Phone' ? 'disabled' : ''}>
-                        ${s.smsStatus === 'NOT_SENT' ? '✉️ Send SMS' : '🔄 Resend'}
+                    <button class="gh-btn gh-btn-outline" style="font-size:11px; padding:4px 8px;" onclick="sendSingleSms(${s.id - 1})" ${s.phone === 'No Phone' ? 'disabled' : ''}>
+                        ${s.smsStatus === 'DELIVERED' ? 'Sent ✅' : 'Send SMS'}
                     </button>
                 </td>
             </tr>
@@ -482,118 +465,125 @@ function renderTable() {
     if (window.lucide) lucide.createIcons();
 }
 
-function getStatusBadgeHtml(status) {
+function getStatusBadge(status) {
     switch (status) {
-        case 'PENDING':   return '<span class="status-badge bg-yellow"><i data-lucide="clock" class="inline-icon"></i> PENDING</span>';
-        case 'SENDING':   return '<span class="status-badge bg-blue"><i data-lucide="zap" class="inline-icon"></i> SENDING</span>';
-        case 'SENT':      return '<span class="status-badge bg-blue"><i data-lucide="send" class="inline-icon"></i> SENT</span>';
-        case 'DELIVERED': return '<span class="status-badge bg-green"><i data-lucide="check-circle-2" class="inline-icon"></i> DELIVERED</span>';
-        case 'FAILED':    return '<span class="status-badge bg-red"><i data-lucide="alert-triangle" class="inline-icon"></i> FAILED</span>';
-        case 'MISSING':   return '<span class="status-badge bg-red"><i data-lucide="phone-off" class="inline-icon"></i> NO PHONE</span>';
-        default:          return '<span class="status-badge" style="background:var(--gh-subtle-bg); color:var(--gh-text-muted);">Not Sent</span>';
+        case 'READY':     return '<span class="status-badge bg-blue">Ready</span>';
+        case 'QUEUED':    return '<span class="status-badge bg-yellow">Queued</span>';
+        case 'SENDING':   return '<span class="status-badge bg-yellow">Sending</span>';
+        case 'SENT':      return '<span class="status-badge bg-blue">Sent</span>';
+        case 'DELIVERED': return '<span class="status-badge bg-green">Delivered</span>';
+        case 'FAILED':    return '<span class="status-badge bg-red">Failed</span>';
+        case 'NO_PHONE':  return '<span class="status-badge bg-red">No Phone</span>';
+        default:          return `<span class="status-badge">${status}</span>`;
     }
 }
 
 // ============================================================
-// API Dispatching & Bulk SMS Execution
+// SMS Dispatching Engine
 // ============================================================
-async function sendSingleStudentSms(index) {
-    if (!API_KEY) {
-        openConfigModal();
-        alert('Please enter your REST API Key to send SMS!');
-        return;
-    }
-
+async function sendSingleSms(index) {
     const student = studentsData[index];
-    if (student.phone === 'No Phone') {
-        logTerminalEvent('SKIPPED', `Skipped SMS for ${student.name}: No parent phone matched.`);
+    if (!student || student.phone === 'No Phone') return;
+
+    if (!API_KEY) {
+        openSettingsModal();
+        alert('Please enter your School API Key first!');
         return;
     }
 
-    const template = document.getElementById('smsTemplateInput').value;
-    const msgText = formatSmsMessage(template, student);
+    const template = document.getElementById('smsTemplateText').value;
+    const message = formatMessage(template, student);
 
-    student.smsStatus = 'PENDING';
-    logTerminalEvent('QUEUED', `Queued SMS for ${student.name} (${student.phone})`);
-    updateProgressStats();
+    student.smsStatus = 'QUEUED';
     renderTable();
 
     try {
-        const response = await fetch(`${GATEWAY_URL}/api/v1/sms/send`, {
+        const res = await fetch(`${GATEWAY_URL}/api/v1/sms/send`, {
             method: 'POST',
             headers: {
-                'X-API-Key': API_KEY,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY
             },
             body: JSON.stringify({
                 phoneNumber: student.phone,
-                message: msgText,
+                message: message,
                 priority: 1
             })
         });
 
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({ message: response.statusText }));
-            throw new Error(err.message || `HTTP ${response.status}`);
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ message: res.statusText }));
+            throw new Error(err.message || `HTTP ${res.status}`);
         }
 
-        const data = await response.json();
-        student.smsStatus = data.status || 'PENDING';
-        student.messageUid = data.messageUid;
-
+        const data = await res.json();
+        student.smsStatus = data.status || 'SENT';
         if (data.messageUid) {
+            student.messageUid = data.messageUid;
             dispatchedMessagesMap[data.messageUid] = index;
         }
-
-        logTerminalEvent('SENDING', `Dispatched SMS to ${student.name} → Gateway Queue`);
-        updateProgressStats();
-        renderTable();
     } catch (e) {
         student.smsStatus = 'FAILED';
-        logTerminalEvent('FAILED', `Error sending to ${student.name}: ${e.message}`);
-        updateProgressStats();
-        renderTable();
+        alert(`Failed to send SMS to ${student.name}: ${e.message}`);
     }
+
+    updateProgressBox();
+    renderTable();
 }
 
-async function triggerSendAllSms() {
-    if (!API_KEY) {
-        openConfigModal();
-        alert('Please configure your REST API Key first!');
+async function sendSmsToAll() {
+    const valid = studentsData.filter(s => s.phone !== 'No Phone');
+    if (!valid.length) {
+        alert('No students with valid parent phone numbers found.');
         return;
     }
 
-    const validStudents = studentsData.filter(s => s.phone !== 'No Phone');
-    if (!confirm(`Send exam results SMS to all ${validStudents.length} matched parents now?`)) return;
+    if (!API_KEY) {
+        openSettingsModal();
+        alert('Please configure your School REST API Key first!');
+        return;
+    }
 
-    const btn = document.getElementById('sendAllBtn');
+    if (!confirm(`Dispatch SMS exam results to all ${valid.length} parents now?`)) {
+        return;
+    }
+
+    document.getElementById('progressMonitorBox').style.display = 'block';
+    const btn = document.getElementById('btnSendAll');
     btn.disabled = true;
-    btn.textContent = '⏳ Dispatching SMS Batch...';
-
-    logTerminalEvent('BATCH', `Starting batch dispatch to ${validStudents.length} parents...`);
+    btn.innerHTML = '<i data-lucide="loader" class="spin-icon"></i> Dispatching...';
 
     for (let i = 0; i < studentsData.length; i++) {
         if (studentsData[i].phone === 'No Phone' || studentsData[i].smsStatus === 'DELIVERED') continue;
-        await sendSingleStudentSms(i);
-        await new Promise(r => setTimeout(r, 300));
+        await sendSingleSms(i);
+        await new Promise(r => setTimeout(r, 250));
     }
 
     btn.disabled = false;
-    btn.textContent = '🚀 Send Results to All Parents';
-    logTerminalEvent('BATCH', `All ${validStudents.length} student SMS dispatches submitted to gateway.`);
+    btn.innerHTML = '<i data-lucide="send" class="btn-icon"></i> Dispatch SMS to All Parents';
+    if (window.lucide) lucide.createIcons();
 }
 
-async function retryAllFailedSms() {
-    const failedList = studentsData.filter(s => ['FAILED','EXPIRED'].includes(s.smsStatus));
-    if (!failedList.length) {
-        alert('No failed SMS messages to retry!');
-        return;
+function updateProgressBox() {
+    const total = studentsData.filter(s => s.phone !== 'No Phone').length;
+    const delivered = studentsData.filter(s => s.smsStatus === 'DELIVERED').length;
+    const sending   = studentsData.filter(s => ['QUEUED', 'SENDING', 'SENT'].includes(s.smsStatus)).length;
+    const failed    = studentsData.filter(s => s.smsStatus === 'FAILED').length;
+
+    if (document.getElementById('countDelivered')) {
+        document.getElementById('countDelivered').textContent = `🟢 Delivered: ${delivered}`;
+    }
+    if (document.getElementById('countSending')) {
+        document.getElementById('countSending').textContent = `⚡ In Progress: ${sending}`;
+    }
+    if (document.getElementById('countFailed')) {
+        document.getElementById('countFailed').textContent = `🔴 Failed: ${failed}`;
     }
 
-    logTerminalEvent('RETRY', `Retrying ${failedList.length} failed SMS dispatches...`);
-    for (let s of failedList) {
-        const idx = studentsData.findIndex(x => x.id === s.id);
-        if (idx !== -1) await sendSingleStudentSms(idx);
+    const completed = delivered + failed;
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+    if (document.getElementById('progressBarFill')) {
+        document.getElementById('progressBarFill').style.width = `${percent}%`;
     }
 }
 
@@ -622,70 +612,92 @@ function startAutoRefreshTracker() {
                     const student = studentsData[studentIdx];
                     if (student && student.smsStatus !== msg.status) {
                         student.smsStatus = msg.status;
-                        logTerminalEvent(msg.status, `SMS ${msg.messageUid.substring(0, 8)} for ${student.name} → ${msg.status}`);
-                        if (['DELIVERED','FAILED'].includes(msg.status)) {
+                        if (['DELIVERED', 'FAILED'].includes(msg.status)) {
                             delete dispatchedMessagesMap[msg.messageUid];
                         }
                     }
                 }
             });
 
-            updateProgressStats();
+            updateProgressBox();
             renderTable();
-        } catch (e) {
-            // Silent background catch
-        }
+        } catch (e) {}
     }, 3000);
 }
 
 // ============================================================
-// Export Merged Master Excel File (.xlsx)
+// Settings Modal & Excel Helpers
 // ============================================================
-function exportMergedExcel() {
-    if (!studentsData.length) return;
+function openSettingsModal() {
+    document.getElementById('cfgGatewayUrl').value = GATEWAY_URL;
+    document.getElementById('cfgApiKey').value = API_KEY;
+    document.getElementById('settingsModal').style.display = 'flex';
+}
 
-    const exportRows = studentsData.map(s => {
-        let rowObj = {
+function closeSettingsModal() {
+    document.getElementById('settingsModal').style.display = 'none';
+}
+
+function saveConfig() {
+    GATEWAY_URL = document.getElementById('cfgGatewayUrl').value.trim().replace(/\/$/, '');
+    API_KEY = document.getElementById('cfgApiKey').value.trim();
+
+    localStorage.setItem('schoolGatewayUrl', GATEWAY_URL);
+    localStorage.setItem('schoolApiKey', API_KEY);
+
+    if (currentSchoolInfo) {
+        currentSchoolInfo.apiKey = API_KEY;
+        applySchoolIdentityToUI(currentSchoolInfo);
+    }
+
+    closeSettingsModal();
+    alert('Settings saved successfully!');
+}
+
+function exportMergedExcel() {
+    if (!studentsData.length || typeof XLSX === 'undefined') return;
+
+    const rows = studentsData.map(s => {
+        let obj = {
             "Student Name": s.name,
             "Parent Phone": s.phone,
             "Match Status": s.isMatched ? "MATCHED" : "UNMATCHED",
             "SMS Status": s.smsStatus
         };
-        Object.assign(rowObj, s.subjects);
-        return rowObj;
+        Object.assign(obj, s.subjects);
+        return obj;
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(exportRows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Merged Results");
-
-    XLSX.writeFile(workbook, "Master_Merged_School_Results.xlsx");
-    logTerminalEvent('EXPORT', 'Exported Master_Merged_School_Results.xlsx file.');
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Merged Results");
+    XLSX.writeFile(wb, "Merged_School_Exam_Results.xlsx");
 }
 
-// ============================================================
-// Sample Excel Generator (.xlsx)
-// ============================================================
-function downloadSampleExcel() {
-    const sampleResults = [
-        { "Student Name": "Juma Ali", "Math (A)": "A", "English (B+)": "B+", "Physics (A)": "A", "Chemistry (B)": "B" },
-        { "Student Name": "Sarah Kelvin", "Math (A)": "A*", "English (B+)": "A", "Physics (A)": "A", "Chemistry (B)": "A" },
-        { "Student Name": "Emmanuel John", "Math (A)": "B", "English (B+)": "B", "Physics (A)": "C", "Chemistry (B)": "B" }
+function generateSampleFiles() {
+    if (typeof XLSX === 'undefined') return;
+
+    // File 1: Results
+    const results = [
+        { "Student Name": "Baraka Emmanuel", "Math (A)": "A", "English (B+)": "A", "Physics (A)": "A", "Chemistry (B)": "B+" },
+        { "Student Name": "Amina Said", "Math (A)": "A*", "English (B+)": "A", "Physics (A)": "A", "Chemistry (B)": "A" },
+        { "Student Name": "Kelvin Mwamba", "Math (A)": "B", "English (B+)": "B", "Physics (A)": "C", "Chemistry (B)": "B" },
+        { "Student Name": "Neema Joseph", "Math (A)": "A", "English (B+)": "B+", "Physics (A)": "B", "Chemistry (B)": "A" }
     ];
-    const ws1 = XLSX.utils.json_to_sheet(sampleResults);
+    const ws1 = XLSX.utils.json_to_sheet(results);
     const wb1 = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb1, ws1, "Grades");
-    XLSX.writeFile(wb1, "File1_Exam_Results_Sample.xlsx");
+    XLSX.utils.book_append_sheet(wb1, ws1, "Exam Results");
+    XLSX.writeFile(wb1, "Sample_File1_Exam_Results.xlsx");
 
-    const sampleContacts = [
-        { "Student Name": "Juma Ali", "Parent Mobile Number": "+25575855909" },
-        { "Student Name": "Sarah Kelvin", "Parent Mobile Number": "+255712345678" },
-        { "Student Name": "Emmanuel John", "Parent Mobile Number": "+255765432109" }
+    // File 2: Parent Contacts
+    const contacts = [
+        { "Student Name": "Baraka Emmanuel", "Parent Phone": "+255758559090" },
+        { "Student Name": "Amina Said", "Parent Phone": "+255712345678" },
+        { "Student Name": "Kelvin Mwamba", "Parent Phone": "+255765432109" },
+        { "Student Name": "Neema Joseph", "Parent Phone": "+255788112233" }
     ];
-    const ws2 = XLSX.utils.json_to_sheet(sampleContacts);
+    const ws2 = XLSX.utils.json_to_sheet(contacts);
     const wb2 = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb2, ws2, "Parent Contacts");
-    XLSX.writeFile(wb2, "File2_Parent_Contacts_Sample.xlsx");
-
-    logTerminalEvent('DOWNLOAD', 'Downloaded sample Excel templates File1 & File2.');
+    XLSX.utils.book_append_sheet(wb2, ws2, "Parent Directory");
+    XLSX.writeFile(wb2, "Sample_File2_Parent_Contacts.xlsx");
 }
