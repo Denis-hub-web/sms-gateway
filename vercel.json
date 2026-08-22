@@ -7,6 +7,10 @@
     { "source": "/school-portal", "destination": "/school-portal/login.html" },
     { "source": "/school-portal/", "destination": "/school-portal/login.html" },
 
+    { "source": "/school", "destination": "/school-results-portal/index.html" },
+    { "source": "/school/", "destination": "/school-results-portal/index.html" },
+    { "source": "/school/index.html", "destination": "/school-results-portal/index.html" },
+
     { "source": "/admin-dashboard", "destination": "/admin-dashboard/index.html" },
     { "source": "/admin-dashboard/", "destination": "/admin-dashboard/index.html" },
     { "source": "/admin", "destination": "/admin-dashboard/index.html" },
