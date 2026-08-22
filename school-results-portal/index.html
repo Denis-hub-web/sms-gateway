@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/school-results-portal/style.css">
     <!-- SheetJS for client-side Excel parsing -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
@@ -19,7 +19,7 @@
     <div class="header-banner">
         <div class="gh-container header-flex">
             <div class="logo-area">
-                <a href="../school-portal/dashboard.html" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
+                <a href="/school-portal/dashboard.html" style="text-decoration:none; display:flex; align-items:center; gap:10px;">
                     <div style="width:36px; height:36px; border-radius:10px; background:rgba(88,166,255,0.15); border:1px solid rgba(88,166,255,0.3); display:flex; align-items:center; justify-content:center;">
                         <i data-lucide="bell" style="width:20px; height:20px; color:var(--gh-blue);"></i>
                     </div>
@@ -30,7 +30,7 @@
                 </a>
             </div>
             <div class="header-right-tools">
-                <a href="../school-portal/dashboard.html" class="gh-btn gh-btn-outline"><i data-lucide="layout-dashboard" class="btn-icon"></i> Back to Dashboard</a>
+                <a href="/school-portal/dashboard.html" class="gh-btn gh-btn-outline"><i data-lucide="layout-dashboard" class="btn-icon"></i> Back to Dashboard</a>
                 <button class="gh-btn gh-btn-outline" onclick="openSettingsModal()"><i data-lucide="settings" class="btn-icon"></i> Gateway & API Settings</button>
                 <button class="gh-btn gh-btn-secondary" onclick="generateSampleFiles()"><i data-lucide="download" class="btn-icon"></i> Download Sample Excel Sheets</button>
             </div>
@@ -272,7 +272,7 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="/school-results-portal/app.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) lucide.createIcons();
