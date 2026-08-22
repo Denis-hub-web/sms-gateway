@@ -1,5 +1,20 @@
 {
   "cleanUrls": true,
+  "rewrites": [
+    { "source": "/school-portal/dashboard", "destination": "/school-portal/dashboard.html" },
+    { "source": "/school-portal/login", "destination": "/school-portal/login.html" },
+    { "source": "/school-portal/register", "destination": "/school-portal/register.html" },
+    { "source": "/school-portal", "destination": "/school-portal/login.html" },
+    { "source": "/school-portal/", "destination": "/school-portal/login.html" },
+
+    { "source": "/admin-dashboard", "destination": "/admin-dashboard/index.html" },
+    { "source": "/admin-dashboard/", "destination": "/admin-dashboard/index.html" },
+    { "source": "/admin", "destination": "/admin-dashboard/index.html" },
+
+    { "source": "/school-results-portal", "destination": "/school-results-portal/index.html" },
+    { "source": "/school-results-portal/", "destination": "/school-results-portal/index.html" },
+    { "source": "/results", "destination": "/school-results-portal/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
