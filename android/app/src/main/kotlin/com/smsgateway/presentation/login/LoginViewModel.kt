@@ -21,7 +21,7 @@ data class LoginUiState(
     val error: String? = null,
     val username: String = "",
     val password: String = "",
-    val serverUrl: String = "https://sms.simukitaa.com/"
+    val serverUrl: String = "https://sms-gateway-qtmi.onrender.com/"
 )
 
 @HiltViewModel
